@@ -1,0 +1,88 @@
+{
+  "onePointAppData": {
+    "users": {
+      "lukasz": {
+        "name": "Łukasz",
+        "dailyGoals": {
+          "2026-06-19": {
+            "text": "10000 kroków",
+            "done": true,
+            "status": "done",
+            "sideMissions": [
+              {
+                "text": "Nauka kodowania - minimum 1 h",
+                "done": true
+              },
+              {
+                "text": "Dobra książka - minimum 30 minut",
+                "done": true
+              }
+            ]
+          },
+          "2026-06-18": {
+            "text": "Trening na rowerze - 60 minut",
+            "done": true,
+            "status": "done",
+            "sideMissions": [
+              {
+                "text": "Opłaty",
+                "done": true
+              },
+              {
+                "text": "Spacer z psem - 60 minut",
+                "done": false
+              }
+            ]
+          },
+          "2026-06-17": {
+            "text": "Nauka kodowania - 2 h",
+            "done": false,
+            "status": "not-done",
+            "sideMissions": [
+              {
+                "text": "Dobra książka - 60 minut",
+                "done": false
+              },
+              {
+                "text": "Jazda na rowerze - 20 km",
+                "done": true
+              }
+            ]
+          },
+          "2026-06-20": {
+            "text": "Festyn rodzinny",
+            "done": true,
+            "status": "done",
+            "sideMissions": [
+              {
+                "text": "Nauka kodowania - minimum 1 h",
+                "done": false
+              },
+              {
+                "text": "Podlej kwiaty !",
+                "done": true
+              }
+            ]
+          },
+          "2026-06-21": {
+            "text": "Zrób w aplikacji wersję opublikowaną na www, żeby dało się do niej wracać i pokazać ją innym.",
+            "done": true,
+            "status": "done",
+            "sideMissions": [
+              {
+                "text": "Popracuj nad UX/UI aplikacji - dopieść tak abyś był zadowolony :)",
+                "done": null
+              }
+            ]
+          }
+        }
+      },
+      "ela": {
+        "name": "Ela",
+        "dailyGoals": {}
+      }
+    },
+    "activeUserId": "lukasz"
+  },
+  "appTheme": "dark"
+}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cel dnia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <div class="today-header">
+        <div class="selected-day-section">
+          <p class="selected-day-label">Wybrany dzień</p>
+          <p id="todayDate" class="selected-day-value"></p>
+        </div>
+        <h1>Cel dnia</h1>
+      </div>
+
+      <div class="top-actions">
+        <div class="theme-switcher">
+          <span>Motyw</span>
+          <button id="lightThemeButton" type="button">Jasny</button>
+          <button id="darkThemeButton" type="button">Ciemny</button>
+        </div>
+
+        <div class="user-switcher">
+          <button id="userButton" class="user-button" type="button" aria-haspopup="true" aria-expanded="false">
+            <span id="userAvatar" class="user-avatar">Ł</span>
+            <span id="userName" class="user-name">Łukasz</span>
+          </button>
+          <div id="userMenu" class="user-menu"></div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button id="todayTabButton" class="tab-button active" type="button">Dzisiaj</button>
+      <button id="statsTabButton" class="tab-button" type="button">Statystyki</button>
+      <button id="historyTabButton" class="tab-button" type="button">Historia</button>
+    </nav>
+
+    <section id="todayTabPanel" class="tab-panel active today-panel">
+      <div class="date-picker">
+        <label for="dateInput">Wybierz datę</label>
+        <input id="dateInput" type="date">
+      </div>
+
+      <form id="goalForm" class="goal-form">
+        <label for="goalInput">Wpisz jeden cel na wybrany dzień</label>
+        <div class="input-row">
+          <input id="goalInput" type="text" placeholder="Np. przejść 30 minut" autocomplete="off">
+          <button type="submit">Zapisz</button>
+        </div>
+      </form>
+
+      <div class="current-goal">
+        <h2>Cel główny</h2>
+        <p id="goalText" class="goal-text empty">Nie ma jeszcze celu na ten dzień.</p>
+        <p id="goalStatus" class="status"></p>
+      </div>
+
+      <div class="actions">
+        <button id="doneButton" type="button">Zrobiony</button>
+        <button id="notDoneButton" type="button" class="secondary">Niezrobiony</button>
+      </div>
+
+      <div class="side-missions">
+        <h2>Misje poboczne</h2>
+        <form id="sideMissionForm" class="side-form">
+          <label for="sideMissionInput">Dodaj mniej ważną misję na wybrany dzień</label>
+          <div class="input-row">
+            <input id="sideMissionInput" type="text" placeholder="Np. uporządkować biurko" autocomplete="off">
+            <button type="submit">Dodaj</button>
+          </div>
+        </form>
+        <ul id="sideMissionList" class="side-list"></ul>
+      </div>
+    </section>
+
+    <section id="statsTabPanel" class="tab-panel stats-tab-panel">
+      <div class="stats-panel">
+        <p id="stats-streak" class="streak clickable-stat">🔥 Seria: 0 dni</p>
+        <p id="stats-record" class="record clickable-stat">🏆 Rekord: 0 dni</p>
+        <div id="effectivenessPanel" class="effectiveness-panel">
+          <p>Poczekaj na pierwsze wyniki</p>
+        </div>
+        <div id="stats-calendar" class="contribution-calendar"></div>
+        <div class="contribution-legend">
+          <span><span class="legend-box contribution-empty"></span> Szary = brak decyzji</span>
+          <span><span class="legend-box contribution-done"></span> Zielony = wykonane</span>
+          <span><span class="legend-box contribution-failed"></span> Czerwony = niewykonane</span>
+        </div>
+      </div>
+
+      <section class="charts-dashboard">
+        <h2>Wykresy</h2>
+        <div class="chart-block">
+          <h3>Ostatnie 7 dni</h3>
+          <div id="weeklyChart" class="bar-chart"></div>
+        </div>
+        <div class="chart-block">
+          <h3>Ostatnie 30 dni</h3>
+          <div id="monthlyChart" class="bar-chart"></div>
+        </div>
+      </section>
+
+      <section class="backup-data">
+        <h2>Backup danych</h2>
+        <p>Przenieś dane między lokalną wersją aplikacji i wersją online.</p>
+        <div class="backup-actions">
+          <button id="exportDataButton" type="button">Eksportuj dane</button>
+          <button id="importDataButton" class="secondary" type="button">Importuj dane</button>
+          <input id="importDataInput" type="file" accept=".json,application/json" hidden>
+        </div>
+      </section>
+    </section>
+
+    <section id="historyTabPanel" class="tab-panel history-panel">
+      <h2>Historia</h2>
+      <div class="history-controls">
+        <button id="historyByDateButton" class="history-toggle" type="button">Według dat</button>
+        <button id="historyByStatusButton" class="history-toggle" type="button">Według statusu</button>
+      </div>
+      <ul id="historyList" class="history-list"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
