@@ -14,8 +14,7 @@ const todayTabPanel = document.getElementById("todayTabPanel");
 const statsTabPanel = document.getElementById("statsTabPanel");
 const historyTabPanel = document.getElementById("historyTabPanel");
 const todayDate = document.getElementById("todayDate");
-const streakText = document.getElementById("stats-streak");
-const recordText = document.getElementById("stats-record");
+const todayWeekday = document.getElementById("todayWeekday");
 const effectivenessPanel = document.getElementById("effectivenessPanel");
 const activityCalendar = document.getElementById("stats-calendar");
 const weeklyChart = document.getElementById("weeklyChart");
@@ -63,10 +62,55 @@ function formatDate(dateKey) {
   return `${day}.${month}.${year}`;
 }
 
+function createDateFromKey(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+
+  return new Date(year, month - 1, day);
+}
+
+function formatPageDate(dateKey) {
+  return new Intl.DateTimeFormat("pl-PL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(createDateFromKey(dateKey));
+}
+
+function formatPageWeekday(dateKey) {
+  const weekday = new Intl.DateTimeFormat("pl-PL", {
+    weekday: "long"
+  }).format(createDateFromKey(dateKey));
+
+  return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+}
+
+function formatHistoryDate(dateKey) {
+  if (dateKey === today) {
+    return "Dzisiaj";
+  }
+
+  if (dateKey === addDays(today, -1)) {
+    return "Wczoraj";
+  }
+
+  return formatPageDate(dateKey);
+}
+
+function getSideMissionCountText(count) {
+  if (count === 1) {
+    return "1 misja poboczna";
+  }
+
+  if (count >= 2 && count <= 4) {
+    return `${formatNumber(count)} misje poboczne`;
+  }
+
+  return `${formatNumber(count)} misji pobocznych`;
+}
+
 function getWeekdayName(dateKey) {
   const names = ["Nd", "Pon", "Wt", "Śr", "Czw", "Pt", "Sob"];
-  const [year, month, day] = dateKey.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
+  const date = createDateFromKey(dateKey);
 
   return names[date.getDay()];
 }
@@ -353,6 +397,30 @@ function getMissionClass(mission) {
   return "waiting";
 }
 
+function getMissionCheckIcon(mission) {
+  if (mission.done === true) {
+    return "✓";
+  }
+
+  if (mission.done === false) {
+    return "×";
+  }
+
+  return "";
+}
+
+function getMissionChecklistClass(mission) {
+  if (mission.done === true) {
+    return "done";
+  }
+
+  if (mission.done === false) {
+    return "failed";
+  }
+
+  return "waiting";
+}
+
 // Przyciski statusu mają trzy wyglądy:
 // zielony dla aktywnego "zrobione", czerwony dla aktywnego "niezrobione" i neutralny dla reszty.
 function getDoneButtonClass(isDone) {
@@ -385,6 +453,30 @@ function getGoalFailedButtonClass(status) {
   }
 
   return "status-neutral";
+}
+
+function getGoalStatusBadgeClass(status) {
+  if (status === "done") {
+    return "goal-status-badge goal-status-done";
+  }
+
+  if (status === "not-done") {
+    return "goal-status-badge goal-status-failed";
+  }
+
+  return "goal-status-badge goal-status-empty";
+}
+
+function getGoalStatusBadgeText(status) {
+  if (status === "done") {
+    return "Wykonane";
+  }
+
+  if (status === "not-done") {
+    return "Niewykonane";
+  }
+
+  return "Brak decyzji";
 }
 
 function isGoalDone(goal) {
@@ -463,7 +555,7 @@ function createPieChartCard(label, stats) {
   const inner = document.createElement("div");
 
   chart.className = "pie-chart";
-  chart.style.background = `conic-gradient(#22c55e 0% ${percent}%, #ef4444 ${percent}% 100%)`;
+  chart.style.background = `conic-gradient(var(--success) 0% ${percent}%, var(--danger) ${percent}% 100%)`;
   inner.className = "pie-chart-inner";
   inner.textContent = formatPercent(percent);
 
@@ -820,7 +912,7 @@ function renderChartsDashboard() {
 }
 
 function launchConfetti() {
-  const colors = ["#22c55e", "#38bdf8", "#facc15", "#ef4444", "#a78bfa"];
+  const colors = ["var(--accent)", "var(--success)", "var(--danger)"];
 
   for (let index = 0; index < 18; index = index + 1) {
     const piece = document.createElement("div");
@@ -862,73 +954,95 @@ function createSmallButton(text, className, onClick) {
   return button;
 }
 
-function renderStreak() {
+function createKpiCard(value, label, sectionId, onClick) {
+  const card = document.createElement("div");
+  const valueElement = document.createElement("div");
+  const labelElement = document.createElement("div");
+
+  card.className = "kpi-card";
+  valueElement.className = "kpi-value";
+  labelElement.className = "kpi-label";
+  valueElement.textContent = value;
+  labelElement.textContent = label;
+
+  if (sectionId) {
+    card.id = sectionId;
+  }
+
+  if (onClick) {
+    card.className = "kpi-card clickable-stat";
+    card.addEventListener("click", onClick);
+  }
+
+  card.appendChild(valueElement);
+  card.appendChild(labelElement);
+
+  return card;
+}
+
+// Panel skuteczności łączy streak, rekord i statystyki wykonania w karty KPI.
+// Nie zmieniamy sposobu liczenia danych, tylko sposób ich pokazania.
+function renderEffectivenessStats() {
   const goals = loadGoals();
   const streak = countStreak(goals);
   const record = countBestStreak(goals);
-
-  streakText.textContent = `🔥 Seria: ${formatNumber(streak)} dni`;
-  recordText.textContent = `🏆 Rekord: ${formatNumber(record)} dni`;
-}
-
-function renderStatsSection(titleLine, percentLine, stats, sectionId) {
-  const section = document.createElement("div");
-  const helper = document.createElement("p");
-
-  section.id = sectionId;
-  section.className = "effectiveness-section clickable-stat";
-  helper.className = "stat-helper";
-  helper.textContent = "Kliknij, aby zobaczyć szczegóły";
-  section.addEventListener("click", function() {
-    goToStatsSection(sectionId);
-  });
-
-  if (stats.total === 0) {
-    appendEmptyStatsMessage(section);
-    section.appendChild(helper);
-    return section;
-  }
-
-  section.appendChild(createStatsLine(titleLine));
-  section.appendChild(createStatsLine(percentLine));
-  section.appendChild(helper);
-
-  return section;
-}
-
-// Panel skuteczności łączy trzy widoki:
-// cel główny, misje poboczne i wspólną skuteczność z obu źródeł.
-function renderEffectivenessStats() {
-  const goals = loadGoals();
   const mainStats = countMainGoalStats(goals);
   const sideStats = countSideMissionStats(goals);
   const totalStats = {
     done: mainStats.done + sideStats.done,
     total: mainStats.total + sideStats.total
   };
+  const kpiGrid = document.createElement("div");
 
   effectivenessPanel.innerHTML = "";
+  kpiGrid.className = "kpi-grid";
 
-  effectivenessPanel.appendChild(renderStatsSection(
-    `Cel dnia: wykonano ${formatNumber(mainStats.done)} z ${formatNumber(mainStats.total)}`,
-    `Skuteczność celu dnia: ${formatPercent(getPercent(mainStats.done, mainStats.total))}`,
-    mainStats,
-    "stats-main-goal"
+  kpiGrid.appendChild(createKpiCard(formatNumber(streak), "Seria", "stats-streak", function() {
+    goToStatsSection("stats-calendar");
+  }));
+
+  kpiGrid.appendChild(createKpiCard(formatNumber(record), "Rekord", "stats-record", function() {
+    goToStatsSection("stats-streak");
+  }));
+
+  kpiGrid.appendChild(createKpiCard(
+    mainStats.total === 0 ? "Brak danych" : formatPercent(getPercent(mainStats.done, mainStats.total)),
+    "Skuteczność celu dnia",
+    "stats-main-goal",
+    function() {
+      goToStatsSection("stats-main-goal");
+    }
   ));
 
-  effectivenessPanel.appendChild(renderStatsSection(
-    `Misje poboczne: wykonano ${formatNumber(sideStats.done)} z ${formatNumber(sideStats.total)}`,
-    `Skuteczność misji pobocznych: ${formatPercent(getPercent(sideStats.done, sideStats.total))}`,
-    sideStats,
-    "stats-side-missions"
+  kpiGrid.appendChild(createKpiCard(
+    sideStats.total === 0 ? "Brak danych" : formatPercent(getPercent(sideStats.done, sideStats.total)),
+    "Skuteczność misji",
+    "stats-side-missions",
+    function() {
+      goToStatsSection("stats-side-missions");
+    }
   ));
 
-  effectivenessPanel.appendChild(renderStatsSection(
-    `Łącznie: wykonano ${formatNumber(totalStats.done)} z ${formatNumber(totalStats.total)}`,
-    `Ogólna skuteczność: ${formatPercent(getPercent(totalStats.done, totalStats.total))}`,
-    totalStats,
-    "stats-overall"
+  kpiGrid.appendChild(createKpiCard(
+    totalStats.total === 0 ? "Brak danych" : formatPercent(getPercent(totalStats.done, totalStats.total)),
+    "Skuteczność ogólna",
+    "stats-overall",
+    function() {
+      goToStatsSection("stats-overall");
+    }
   ));
+
+  kpiGrid.appendChild(createKpiCard(
+    `${formatNumber(mainStats.done)} / ${formatNumber(mainStats.total)}`,
+    "Cele dnia"
+  ));
+
+  kpiGrid.appendChild(createKpiCard(
+    `${formatNumber(sideStats.done)} / ${formatNumber(sideStats.total)}`,
+    "Misje poboczne"
+  ));
+
+  effectivenessPanel.appendChild(kpiGrid);
 
   renderPieCharts(mainStats, sideStats, totalStats);
 }
@@ -966,14 +1080,15 @@ function renderToday() {
   const goals = loadGoals();
   const selectedGoal = goals[selectedDate];
 
-  todayDate.textContent = formatDate(selectedDate);
+  todayDate.textContent = `${formatPageWeekday(selectedDate)}, ${formatPageDate(selectedDate)}`;
+  todayWeekday.textContent = formatPageWeekday(selectedDate);
   dateInput.value = selectedDate;
 
   if (selectedGoal === undefined || selectedGoal.text === "") {
-    goalText.textContent = "Nie ma jeszcze celu na ten dzień.";
-    goalText.className = "goal-text empty";
-    goalStatus.textContent = "";
-    goalStatus.className = "status";
+    goalText.textContent = "Co jest dzi? najwa?niejsze?";
+    goalText.className = "goal-hero-title empty";
+    goalStatus.textContent = getGoalStatusBadgeText("waiting");
+    goalStatus.className = getGoalStatusBadgeClass("waiting");
     goalInput.value = selectedGoal ? selectedGoal.text : "";
     doneButton.disabled = true;
     notDoneButton.disabled = true;
@@ -983,16 +1098,15 @@ function renderToday() {
   }
 
   goalText.textContent = getGoalTextWithIcon(selectedGoal.text, selectedGoal.status);
-  goalText.className = `goal-text ${getStatusClass(selectedGoal.status)}`;
-  goalStatus.textContent = getStatusText(selectedGoal.status);
-  goalStatus.className = `status ${getStatusClass(selectedGoal.status)}`;
+  goalText.className = `goal-hero-title ${getStatusClass(selectedGoal.status)}`;
+  goalStatus.textContent = getGoalStatusBadgeText(selectedGoal.status);
+  goalStatus.className = getGoalStatusBadgeClass(selectedGoal.status);
   goalInput.value = selectedGoal.text;
   doneButton.disabled = false;
   notDoneButton.disabled = false;
   doneButton.className = getGoalDoneButtonClass(selectedGoal.status);
   notDoneButton.className = getGoalFailedButtonClass(selectedGoal.status);
 }
-
 // Misje poboczne są zapisywane przy konkretnym dniu.
 // Nie wpływają na serię, bo seria sprawdza tylko status głównego celu.
 function renderSideMissions() {
@@ -1000,6 +1114,7 @@ function renderSideMissions() {
   const selectedGoal = goals[selectedDate];
 
   sideMissionList.innerHTML = "";
+  sideMissionList.className = "side-list side-missions-checklist";
 
   if (selectedGoal === undefined || selectedGoal.sideMissions.length === 0) {
     const emptyItem = document.createElement("li");
@@ -1010,27 +1125,33 @@ function renderSideMissions() {
 
   selectedGoal.sideMissions.forEach(function(mission, index) {
     const item = document.createElement("li");
+    const checkButton = document.createElement("button");
     const text = document.createElement("span");
-    const buttons = document.createElement("div");
+    const deleteButton = document.createElement("button");
 
-    text.textContent = getMissionTextWithIcon(mission);
-    text.className = `side-text ${getMissionClass(mission)}`;
-    buttons.className = "side-buttons";
+    item.className = "mission-checklist-item";
+    checkButton.type = "button";
+    checkButton.className = `mission-check ${getMissionChecklistClass(mission)}`;
+    checkButton.title = "Kliknij, aby zmienić status";
+    checkButton.textContent = getMissionCheckIcon(mission);
+    text.textContent = formatNumbersInText(mission.text);
+    text.className = `mission-title ${getMissionChecklistClass(mission)}`;
+    deleteButton.type = "button";
+    deleteButton.className = "mission-delete-button";
+    deleteButton.textContent = "Usuń";
+    deleteButton.title = "Usuń misję";
 
-    buttons.appendChild(createSmallButton("Zrobiona", `small-button ${getDoneButtonClass(mission.done)}`, function() {
-      setSideMissionDone(selectedDate, index, true);
-    }));
+    checkButton.addEventListener("click", function() {
+      cycleSideMissionDone(selectedDate, index);
+    });
 
-    buttons.appendChild(createSmallButton("Niezrobiona", `small-button ${getFailedButtonClass(mission.done)}`, function() {
-      setSideMissionDone(selectedDate, index, false);
-    }));
-
-    buttons.appendChild(createSmallButton("Usuń", "small-button delete-button", function() {
+    deleteButton.addEventListener("click", function() {
       deleteSideMission(selectedDate, index);
-    }));
+    });
 
+    item.appendChild(checkButton);
     item.appendChild(text);
-    item.appendChild(buttons);
+    item.appendChild(deleteButton);
     sideMissionList.appendChild(item);
   });
 }
@@ -1049,14 +1170,14 @@ function getHistoryBadgeClass(goal) {
 
 function getHistoryBadgeText(goal) {
   if (goal.done === true) {
-    return "✅ wykonane";
+    return "Wykonane";
   }
 
   if (goal.done === false) {
-    return "❌ niewykonane";
+    return "Niewykonane";
   }
 
-  return "⏳ brak decyzji";
+  return "Brak decyzji";
 }
 
 function getMissionBadgeClass(mission) {
@@ -1073,14 +1194,14 @@ function getMissionBadgeClass(mission) {
 
 function getMissionBadgeText(mission) {
   if (mission.done === true) {
-    return "✅ wykonane";
+    return "Wykonane";
   }
 
   if (mission.done === false) {
-    return "❌ niewykonane";
+    return "Niewykonane";
   }
 
-  return "⏳ brak decyzji";
+  return "Brak decyzji";
 }
 
 function selectHistoryDate(dateKey) {
@@ -1096,7 +1217,7 @@ function createHistoryDetails(dateKey, goal) {
   const missionTitle = document.createElement("p");
   const missionList = document.createElement("ul");
 
-  details.className = "history-details";
+  details.className = "history-feed-details";
   goalLine.textContent = `Cel główny: ${formatNumbersInText(goal.text) || "(brak celu głównego)"}`;
   goalBadge.className = getHistoryBadgeClass(goal);
   goalBadge.textContent = getHistoryBadgeText(goal);
@@ -1137,32 +1258,42 @@ function createHistoryDateItem(dateKey, goal) {
   const wrapper = document.createElement("details");
   const summary = document.createElement("summary");
   const date = document.createElement("span");
+  const main = document.createElement("span");
   const text = document.createElement("span");
   const badge = document.createElement("span");
+  const meta = document.createElement("span");
+  const actions = document.createElement("span");
   const openButton = document.createElement("button");
 
-  item.className = "history-item history-item-readonly";
-  wrapper.className = "history-summary";
-  summary.className = "history-group-header";
-  date.className = "history-date";
-  date.textContent = formatDate(dateKey);
-  text.className = "history-goal";
+  item.className = "history-feed-item";
+  wrapper.className = "history-feed-summary";
+  summary.className = "history-feed-main";
+  date.className = "history-feed-date";
+  date.textContent = formatHistoryDate(dateKey);
+  main.className = "history-feed-title";
+  text.className = "history-feed-goal";
   text.textContent = formatNumbersInText(goal.text) || "(brak celu głównego)";
   badge.className = getHistoryBadgeClass(goal);
   badge.textContent = getHistoryBadgeText(goal);
+  meta.className = "history-feed-meta";
+  meta.textContent = getSideMissionCountText(goal.sideMissions.length);
+  actions.className = "history-feed-actions";
   openButton.type = "button";
-  openButton.className = "history-open-button";
-  openButton.textContent = "Otwórz";
+  openButton.className = "history-open-day";
+  openButton.textContent = "Otwórz dzień";
   openButton.addEventListener("click", function(event) {
     event.preventDefault();
     event.stopPropagation();
     selectHistoryDate(dateKey);
   });
 
+  main.appendChild(badge);
+  main.appendChild(text);
+  actions.appendChild(openButton);
   summary.appendChild(date);
-  summary.appendChild(text);
-  summary.appendChild(badge);
-  summary.appendChild(openButton);
+  summary.appendChild(main);
+  summary.appendChild(meta);
+  summary.appendChild(actions);
   wrapper.appendChild(summary);
   wrapper.appendChild(createHistoryDetails(dateKey, goal));
 
@@ -1172,27 +1303,7 @@ function createHistoryDateItem(dateKey, goal) {
 }
 
 function createHistoryStatusEntry(dateKey, goal) {
-  const item = document.createElement("li");
-  const date = document.createElement("span");
-  const text = document.createElement("span");
-  const count = document.createElement("span");
-
-  item.className = "history-item history-item-readonly";
-  date.className = "history-date";
-  date.textContent = formatDate(dateKey);
-  text.className = "history-goal";
-  text.textContent = formatNumbersInText(goal.text) || "(brak celu głównego)";
-  count.className = "history-badge history-badge-empty";
-  count.textContent = `${formatNumber(goal.sideMissions.length)} misji`;
-
-  item.appendChild(date);
-  item.appendChild(text);
-  item.appendChild(count);
-  item.addEventListener("click", function() {
-    selectHistoryDate(dateKey);
-  });
-
-  return item;
+  return createHistoryDateItem(dateKey, goal);
 }
 
 function createHistoryGroup(title, dates, goals) {
@@ -1205,11 +1316,11 @@ function createHistoryGroup(title, dates, goals) {
   details.open = true;
   summary.className = "history-group-header";
   summary.textContent = `${title} (${formatNumber(dates.length)})`;
-  list.className = "history-list";
+  list.className = "history-group-body history-feed";
 
   if (dates.length === 0) {
     const emptyItem = document.createElement("li");
-    emptyItem.className = "history-item history-item-readonly";
+    emptyItem.className = "history-feed-empty";
     emptyItem.textContent = "Brak wpisów.";
     list.appendChild(emptyItem);
   }
@@ -1259,11 +1370,12 @@ function renderHistory() {
   const dates = Object.keys(goals).sort().reverse();
 
   historyList.innerHTML = "";
+  historyList.className = "history-list history-feed";
   setHistoryToggleState();
 
   if (dates.length === 0) {
     const emptyItem = document.createElement("li");
-    emptyItem.className = "history-item history-item-readonly";
+    emptyItem.className = "history-feed-empty";
     emptyItem.textContent = "Historia jest jeszcze pusta.";
     historyList.appendChild(emptyItem);
     return;
@@ -1279,7 +1391,6 @@ function renderHistory() {
 
 function renderApp() {
   renderUserSwitcher();
-  renderStreak();
   renderEffectivenessStats();
   renderActivityCalendar();
   renderChartsDashboard();
@@ -1374,6 +1485,37 @@ function setSideMissionDone(dateKey, missionIndex, done) {
   const wasDone = mission.done === true;
 
   mission.done = done;
+  saveGoals(goals);
+  renderApp();
+
+  if (mission.done === true && wasDone !== true) {
+    launchSuccessPop();
+  }
+}
+
+function cycleSideMissionDone(dateKey, missionIndex) {
+  const goals = loadGoals();
+
+  if (goals[dateKey] === undefined) {
+    return;
+  }
+
+  const mission = goals[dateKey].sideMissions[missionIndex];
+
+  if (mission === undefined) {
+    return;
+  }
+
+  const wasDone = mission.done === true;
+
+  if (mission.done !== true && mission.done !== false) {
+    mission.done = true;
+  } else if (mission.done === true) {
+    mission.done = false;
+  } else {
+    mission.done = null;
+  }
+
   saveGoals(goals);
   renderApp();
 
@@ -1535,14 +1677,6 @@ document.addEventListener("keydown", function(event) {
     closeUserMenu();
     userButton.focus();
   }
-});
-
-streakText.addEventListener("click", function() {
-  goToStatsSection("stats-calendar");
-});
-
-recordText.addEventListener("click", function() {
-  goToStatsSection("stats-streak");
 });
 
 todayTabButton.addEventListener("click", function() {

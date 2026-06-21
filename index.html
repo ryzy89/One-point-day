@@ -8,17 +8,23 @@
 </head>
 <body>
   <main class="app">
-    <header class="app-header">
-      <div class="today-header">
-        <div class="selected-day-section">
-          <p class="selected-day-label">Wybrany dzień</p>
-          <p id="todayDate" class="selected-day-value"></p>
+    <header class="app-topbar">
+      <div class="app-brand">
+        <div class="app-logo">●</div>
+        <div>
+          <div class="app-name">One Point</div>
+          <div class="app-subtitle">Daily focus tracker</div>
         </div>
-        <h1>Cel dnia</h1>
       </div>
 
-      <div class="top-actions">
-        <div class="theme-switcher">
+      <nav class="app-tabs">
+        <button id="todayTabButton" class="tab-button active" type="button">Dzisiaj</button>
+        <button id="statsTabButton" class="tab-button" type="button">Statystyki</button>
+        <button id="historyTabButton" class="tab-button" type="button">Historia</button>
+      </nav>
+
+      <div class="app-actions">
+        <div class="theme-switcher theme-toggle">
           <span>Motyw</span>
           <button id="lightThemeButton" type="button">Jasny</button>
           <button id="darkThemeButton" type="button">Ciemny</button>
@@ -34,39 +40,42 @@
       </div>
     </header>
 
-    <nav class="tabs">
-      <button id="todayTabButton" class="tab-button active" type="button">Dzisiaj</button>
-      <button id="statsTabButton" class="tab-button" type="button">Statystyki</button>
-      <button id="historyTabButton" class="tab-button" type="button">Historia</button>
-    </nav>
-
     <section id="todayTabPanel" class="tab-panel active today-panel">
       <div class="date-picker">
         <label for="dateInput">Wybierz datę</label>
         <input id="dateInput" type="date">
       </div>
 
-      <form id="goalForm" class="goal-form">
-        <label for="goalInput">Wpisz jeden cel na wybrany dzień</label>
-        <div class="input-row">
-          <input id="goalInput" type="text" placeholder="Np. przejść 30 minut" autocomplete="off">
-          <button type="submit">Zapisz</button>
+      <section class="goal-hero-card">
+        <div class="goal-hero-header">
+          <div>
+            <div class="goal-hero-eyebrow">Cel dnia</div>
+            <h1 id="goalText" class="goal-hero-title empty">Co jest dziś najważniejsze?</h1>
+          </div>
+
+          <div id="goalStatus" class="goal-status-badge goal-status-empty"></div>
         </div>
-      </form>
 
-      <div class="current-goal">
-        <h2>Cel główny</h2>
-        <p id="goalText" class="goal-text empty">Nie ma jeszcze celu na ten dzień.</p>
-        <p id="goalStatus" class="status"></p>
-      </div>
+        <div id="todayDate" class="goal-hero-meta"></div>
+        <span id="todayWeekday" hidden></span>
 
-      <div class="actions">
-        <button id="doneButton" type="button">Zrobiony</button>
-        <button id="notDoneButton" type="button" class="secondary">Niezrobiony</button>
-      </div>
+        <div class="goal-hero-actions">
+          <button id="doneButton" type="button">Zrobione</button>
+          <button id="notDoneButton" type="button" class="secondary">Niezrobione</button>
+        </div>
+
+        <form id="goalForm" class="goal-form goal-hero-form">
+          <label for="goalInput">Dodaj albo edytuj cel dla wybranego dnia</label>
+          <div class="input-row">
+            <input id="goalInput" type="text" placeholder="Np. przejść 30 minut" autocomplete="off">
+            <button type="submit">Zapisz</button>
+          </div>
+        </form>
+      </section>
 
       <div class="side-missions">
-        <h2>Misje poboczne</h2>
+        <h2>⭐ Misje poboczne</h2>
+        <p class="mission-helper">Kliknij, aby zmienić status</p>
         <form id="sideMissionForm" class="side-form">
           <label for="sideMissionInput">Dodaj mniej ważną misję na wybrany dzień</label>
           <div class="input-row">
@@ -80,8 +89,6 @@
 
     <section id="statsTabPanel" class="tab-panel stats-tab-panel">
       <div class="stats-panel">
-        <p id="stats-streak" class="streak clickable-stat">🔥 Seria: 0 dni</p>
-        <p id="stats-record" class="record clickable-stat">🏆 Rekord: 0 dni</p>
         <div id="effectivenessPanel" class="effectiveness-panel">
           <p>Poczekaj na pierwsze wyniki</p>
         </div>
