@@ -1,4 +1,8 @@
 const goalForm = document.getElementById("goalForm");
+const appRoot = document.getElementById("appRoot");
+const startScreen = document.getElementById("startScreen");
+const startEmptyButton = document.getElementById("startEmptyButton");
+const loadDemoButton = document.getElementById("loadDemoButton");
 const goalInput = document.getElementById("goalInput");
 const dateInput = document.getElementById("dateInput");
 const lightThemeButton = document.getElementById("lightThemeButton");
@@ -32,11 +36,13 @@ const historyList = document.getElementById("historyList");
 const exportDataButton = document.getElementById("exportDataButton");
 const importDataButton = document.getElementById("importDataButton");
 const importDataInput = document.getElementById("importDataInput");
+const clearLocalDataButton = document.getElementById("clearLocalDataButton");
 
 const STORAGE_KEY = "dailyGoals";
 const APP_DATA_KEY = "onePointAppData";
 const THEME_KEY = "appTheme";
 const today = getTodayDateKey();
+const hasInitialAppData = localStorage.getItem(APP_DATA_KEY) !== null;
 let appData = loadAppData();
 let selectedDate = today;
 let historyView = "date";
@@ -203,6 +209,97 @@ function createDefaultAppData() {
   };
 }
 
+function createDemoGoal(text, done, sideMissions) {
+  let status = "waiting";
+
+  if (done === true) {
+    status = "done";
+  }
+
+  if (done === false) {
+    status = "not-done";
+  }
+
+  return {
+    text: text,
+    done: done,
+    status: status,
+    sideMissions: sideMissions
+  };
+}
+
+function createDemoSideMission(text, done) {
+  return {
+    text: text,
+    done: done
+  };
+}
+
+function createDemoAppData() {
+  const demoData = createDefaultAppData();
+  const lukaszGoals = {};
+  const elaGoals = {};
+
+  lukaszGoals[today] = createDemoGoal("10000 kroków", null, [
+    createDemoSideMission("Wypić 2 litry wody", true),
+    createDemoSideMission("Rozciąganie 10 minut", null),
+    createDemoSideMission("Spacer po pracy", false)
+  ]);
+  lukaszGoals[addDays(today, -1)] = createDemoGoal("Trening siłowy", true, [
+    createDemoSideMission("Przygotować torbę", true),
+    createDemoSideMission("Białko po treningu", true)
+  ]);
+  lukaszGoals[addDays(today, -2)] = createDemoGoal("Przeczytać 30 stron", true, [
+    createDemoSideMission("Notatka z książki", true),
+    createDemoSideMission("Odłożyć telefon wieczorem", false)
+  ]);
+  lukaszGoals[addDays(today, -3)] = createDemoGoal("Plan tygodnia", true, [
+    createDemoSideMission("Ustalić 3 priorytety", true)
+  ]);
+  lukaszGoals[addDays(today, -4)] = createDemoGoal("Bieg 5 km", false, [
+    createDemoSideMission("Przygotować buty", true),
+    createDemoSideMission("Wyjść przed 19:00", false)
+  ]);
+  lukaszGoals[addDays(today, -5)] = createDemoGoal("Nauka JavaScript 45 minut", true, [
+    createDemoSideMission("Powtórzyć localStorage", true),
+    createDemoSideMission("Zrobić krótkie notatki", true)
+  ]);
+  lukaszGoals[addDays(today, -6)] = createDemoGoal("Porządek na biurku", true, [
+    createDemoSideMission("Wyrzucić stare kartki", true)
+  ]);
+  lukaszGoals[addDays(today, -7)] = createDemoGoal("Medytacja 10 minut", false, [
+    createDemoSideMission("Przygotować timer", false)
+  ]);
+  lukaszGoals[addDays(today, -8)] = createDemoGoal("Zrobić przegląd finansów", true, [
+    createDemoSideMission("Sprawdzić subskrypcje", true),
+    createDemoSideMission("Zapisać wydatki", null)
+  ]);
+
+  elaGoals[today] = createDemoGoal("Joga 20 minut", true, [
+    createDemoSideMission("Mata gotowa", true),
+    createDemoSideMission("Herbata po ćwiczeniach", null)
+  ]);
+  elaGoals[addDays(today, -1)] = createDemoGoal("Przygotować prezentację", true, [
+    createDemoSideMission("Slajd z podsumowaniem", true),
+    createDemoSideMission("Wysłać PDF", true)
+  ]);
+  elaGoals[addDays(today, -2)] = createDemoGoal("Spacer 8000 kroków", false, [
+    createDemoSideMission("Wyjść po obiedzie", false)
+  ]);
+  elaGoals[addDays(today, -3)] = createDemoGoal("Godzina bez telefonu", true, [
+    createDemoSideMission("Odłożyć telefon do szuflady", true)
+  ]);
+  elaGoals[addDays(today, -4)] = createDemoGoal("Przeczytać artykuł branżowy", null, [
+    createDemoSideMission("Zapisać 3 wnioski", null)
+  ]);
+
+  demoData.users.lukasz.dailyGoals = lukaszGoals;
+  demoData.users.ela.dailyGoals = elaGoals;
+  demoData.activeUserId = "lukasz";
+
+  return demoData;
+}
+
 function normalizeDailyGoals(goals) {
   const normalizedGoals = goals || {};
 
@@ -280,13 +377,33 @@ function loadAppData() {
   const defaultAppData = createDefaultAppData();
 
   defaultAppData.users.lukasz.dailyGoals = loadOldDailyGoals();
-  localStorage.setItem(APP_DATA_KEY, JSON.stringify(defaultAppData));
 
   return defaultAppData;
 }
 
 function saveAppData() {
   localStorage.setItem(APP_DATA_KEY, JSON.stringify(appData));
+}
+
+function showStartScreen() {
+  startScreen.className = "start-screen";
+  appRoot.className = "app hidden";
+}
+
+function hideStartScreen() {
+  startScreen.className = "start-screen hidden";
+  appRoot.className = "app";
+}
+
+function startWithAppData(newAppData) {
+  localStorage.setItem(APP_DATA_KEY, JSON.stringify(newAppData));
+  appData = loadAppData();
+  selectedDate = today;
+  historyView = "date";
+  hideStartScreen();
+  applyTheme(loadTheme());
+  setActiveTab("today");
+  renderApp();
 }
 
 function getActiveUser() {
@@ -1085,7 +1202,7 @@ function renderToday() {
   dateInput.value = selectedDate;
 
   if (selectedGoal === undefined || selectedGoal.text === "") {
-    goalText.textContent = "Co jest dzi? najwa?niejsze?";
+    goalText.textContent = "Co jest dziś najważniejsze?";
     goalText.className = "goal-hero-title empty";
     goalStatus.textContent = getGoalStatusBadgeText("waiting");
     goalStatus.className = getGoalStatusBadgeClass("waiting");
@@ -1625,6 +1742,14 @@ darkThemeButton.addEventListener("click", function() {
   applyTheme("dark");
 });
 
+startEmptyButton.addEventListener("click", function() {
+  startWithAppData(createDefaultAppData());
+});
+
+loadDemoButton.addEventListener("click", function() {
+  startWithAppData(createDemoAppData());
+});
+
 exportDataButton.addEventListener("click", function() {
   exportAppData();
 });
@@ -1658,6 +1783,23 @@ importDataInput.addEventListener("change", function() {
   });
 
   reader.readAsText(selectedFile);
+});
+
+clearLocalDataButton.addEventListener("click", function() {
+  const shouldClear = confirm("To usunie dane tej aplikacji z tej przeglądarki. Kontynuować?");
+
+  if (!shouldClear) {
+    return;
+  }
+
+  localStorage.removeItem(APP_DATA_KEY);
+  localStorage.removeItem(THEME_KEY);
+  appData = createDefaultAppData();
+  selectedDate = today;
+  historyView = "date";
+  applyTheme("dark");
+  localStorage.removeItem(THEME_KEY);
+  showStartScreen();
 });
 
 userButton.addEventListener("click", function() {
@@ -1738,5 +1880,11 @@ notDoneButton.addEventListener("click", function() {
 });
 
 applyTheme(loadTheme());
-setActiveTab("today");
-renderApp();
+
+if (hasInitialAppData) {
+  hideStartScreen();
+  setActiveTab("today");
+  renderApp();
+} else {
+  showStartScreen();
+}

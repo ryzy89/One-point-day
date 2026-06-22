@@ -75,6 +75,49 @@ input {
   font: inherit;
 }
 
+.hidden {
+  display: none !important;
+}
+
+.start-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.start-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 16px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.start-card h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.start-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.start-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
 .app {
   width: min(1120px, calc(100% - 64px));
   margin: 0 auto;
@@ -1441,14 +1484,16 @@ details[open] > .history-group-header::before {
 
   .input-row,
   .actions,
-  .backup-actions {
+  .backup-actions,
+  .start-actions {
     flex-direction: column;
   }
 
   .input-row input,
   .input-row button,
   .actions button,
-  .backup-actions button {
+  .backup-actions button,
+  .start-actions button {
     width: 100%;
   }
 

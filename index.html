@@ -7,7 +7,19 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app">
+  <section id="startScreen" class="start-screen hidden">
+    <div class="start-card">
+      <div class="app-logo">●</div>
+      <h1>One Point</h1>
+      <p>Wybierz, czy chcesz zacząć od pustej aplikacji, czy zobaczyć przykładowe dane demo.</p>
+      <div class="start-actions">
+        <button id="startEmptyButton" type="button" class="secondary">Rozpocznij od pustej aplikacji</button>
+        <button id="loadDemoButton" type="button">Załaduj przykładowe dane demo</button>
+      </div>
+    </div>
+  </section>
+
+  <main id="appRoot" class="app">
     <header class="app-topbar">
       <div class="app-brand">
         <div class="app-logo">●</div>
@@ -118,6 +130,7 @@
         <div class="backup-actions">
           <button id="exportDataButton" type="button">Eksportuj dane</button>
           <button id="importDataButton" class="secondary" type="button">Importuj dane</button>
+          <button id="clearLocalDataButton" class="secondary" type="button">Wyczyść dane lokalne</button>
           <input id="importDataInput" type="file" accept=".json,application/json" hidden>
         </div>
       </section>
