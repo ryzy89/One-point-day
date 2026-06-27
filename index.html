@@ -7,14 +7,23 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <section id="startScreen" class="start-screen hidden">
+  <section id="startScreen" class="start-screen hidden" aria-labelledby="welcomeTitle">
     <div class="start-card">
-      <div class="app-logo">●</div>
-      <h1>One Point</h1>
-      <p>Wybierz, czy chcesz zacząć od pustej aplikacji, czy zobaczyć przykładowe dane demo.</p>
+      <div class="welcome-logo">One Point Day</div>
+      <h1 id="welcomeTitle">One Point Day</h1>
+      <p class="welcome-subtitle">Jeden cel. Każdy dzień.</p>
+      <p class="welcome-description">Nie próbuj zrobić wszystkiego. Zrób jedną rzecz naprawdę dobrze.</p>
+
+      <ul class="welcome-features">
+        <li>Cel dnia</li>
+        <li>Misje poboczne</li>
+        <li>Statystyki i streak</li>
+        <li>Historia postępów</li>
+        <li>Kalendarz aktywności</li>
+      </ul>
       <div class="start-actions">
-        <button id="startEmptyButton" type="button" class="secondary">Rozpocznij od pustej aplikacji</button>
-        <button id="loadDemoButton" type="button">Załaduj przykładowe dane demo</button>
+        <button id="startEmptyButton" type="button">Rozpocznij</button>
+        <button id="loadDemoButton" type="button" class="secondary">Załaduj dane demonstracyjne</button>
       </div>
     </div>
   </section>

@@ -38,11 +38,16 @@ const importDataButton = document.getElementById("importDataButton");
 const importDataInput = document.getElementById("importDataInput");
 const clearLocalDataButton = document.getElementById("clearLocalDataButton");
 
+startEmptyButton.textContent = "Rozpocznij";
+loadDemoButton.textContent = "Załaduj dane demonstracyjne";
+
 const STORAGE_KEY = "dailyGoals";
 const APP_DATA_KEY = "onePointAppData";
 const THEME_KEY = "appTheme";
+const WELCOME_KEY = "welcomeSeen";
 const today = getTodayDateKey();
 const hasInitialAppData = localStorage.getItem(APP_DATA_KEY) !== null;
+const hasSeenWelcome = localStorage.getItem(WELCOME_KEY) === "true";
 let appData = loadAppData();
 let selectedDate = today;
 let historyView = "date";
@@ -386,8 +391,11 @@ function saveAppData() {
 }
 
 function showStartScreen() {
+  const hasSavedAppData = localStorage.getItem(APP_DATA_KEY) !== null;
+
   startScreen.className = "start-screen";
   appRoot.className = "app hidden";
+  loadDemoButton.hidden = hasSavedAppData;
 }
 
 function hideStartScreen() {
@@ -395,15 +403,34 @@ function hideStartScreen() {
   appRoot.className = "app";
 }
 
+function finishWelcome() {
+  localStorage.setItem(WELCOME_KEY, "true");
+  startScreen.classList.add("is-leaving");
+
+  setTimeout(function() {
+    hideStartScreen();
+    startScreen.classList.remove("is-leaving");
+  }, 260);
+}
+
 function startWithAppData(newAppData) {
   localStorage.setItem(APP_DATA_KEY, JSON.stringify(newAppData));
   appData = loadAppData();
   selectedDate = today;
   historyView = "date";
-  hideStartScreen();
   applyTheme(loadTheme());
   setActiveTab("today");
   renderApp();
+  finishWelcome();
+}
+
+function enterExistingApp() {
+  selectedDate = today;
+  historyView = "date";
+  applyTheme(loadTheme());
+  setActiveTab("today");
+  renderApp();
+  finishWelcome();
 }
 
 function getActiveUser() {
@@ -1743,10 +1770,20 @@ darkThemeButton.addEventListener("click", function() {
 });
 
 startEmptyButton.addEventListener("click", function() {
-  startWithAppData(createDefaultAppData());
+  if (localStorage.getItem(APP_DATA_KEY) === null) {
+    startWithAppData(appData);
+    return;
+  }
+
+  enterExistingApp();
 });
 
 loadDemoButton.addEventListener("click", function() {
+  if (localStorage.getItem(APP_DATA_KEY) !== null) {
+    enterExistingApp();
+    return;
+  }
+
   startWithAppData(createDemoAppData());
 });
 
@@ -1794,6 +1831,7 @@ clearLocalDataButton.addEventListener("click", function() {
 
   localStorage.removeItem(APP_DATA_KEY);
   localStorage.removeItem(THEME_KEY);
+  localStorage.removeItem(WELCOME_KEY);
   appData = createDefaultAppData();
   selectedDate = today;
   historyView = "date";
@@ -1881,7 +1919,7 @@ notDoneButton.addEventListener("click", function() {
 
 applyTheme(loadTheme());
 
-if (hasInitialAppData) {
+if (hasInitialAppData && hasSeenWelcome) {
   hideStartScreen();
   setActiveTab("today");
   renderApp();
