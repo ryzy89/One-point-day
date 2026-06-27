@@ -1020,14 +1020,15 @@ button.status-failed,
 }
 
 .mission-check {
-  width: 22px;
-  height: 22px;
-  min-height: 22px;
-  flex: 0 0 22px;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
   display: inline-grid;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border-strong);
+  border: 0;
   border-radius: 999px;
   color: transparent;
   background: transparent;
@@ -1037,6 +1038,15 @@ button.status-failed,
   box-shadow: none;
 }
 
+.mission-check::before {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: transparent;
+}
+
 .mission-check:hover {
   transform: none;
   box-shadow: none;
@@ -1044,12 +1054,18 @@ button.status-failed,
 
 .mission-check.done {
   color: var(--success);
+}
+
+.mission-check.done::before {
   border-color: var(--success);
   background: var(--success-soft);
 }
 
 .mission-check.failed {
   color: var(--danger);
+}
+
+.mission-check.failed::before {
   border-color: var(--danger);
   background: var(--danger-soft);
 }
@@ -1059,6 +1075,9 @@ button.status-failed,
   flex: 1;
   color: var(--text);
   font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .mission-title.done {
@@ -1391,7 +1410,7 @@ details[open] > .history-group-header::before {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 820px) {
   .app-topbar {
     flex-wrap: wrap;
   }
@@ -1404,6 +1423,10 @@ details[open] > .history-group-header::before {
     order: 3;
     width: 100%;
     justify-content: space-between;
+  }
+
+  .tab-button {
+    min-height: 44px;
   }
 
   .app-actions {
@@ -1474,6 +1497,22 @@ details[open] > .history-group-header::before {
     flex: 1;
   }
 
+  button,
+  .small-button,
+  .history-open-day,
+  .theme-switcher button,
+  .user-button,
+  .add-user-button,
+  .delete-button {
+    min-height: 44px;
+  }
+
+  .history-open-day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .charts-section {
     grid-template-columns: 1fr;
   }
@@ -1525,5 +1564,19 @@ details[open] > .history-group-header::before {
 
   .bar-chart {
     overflow-x: auto;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .mission-delete-button {
+    min-width: 44px;
+    min-height: 44px;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 380px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
   }
 }
