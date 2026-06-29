@@ -430,10 +430,10 @@ input {
 }
 
 .user-menu {
-  position: fixed;
-  top: 72px;
-  right: 32px;
-  z-index: 99999;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1000;
   min-width: 240px;
   max-width: calc(100vw - 32px);
   display: none;
@@ -445,15 +445,37 @@ input {
   backdrop-filter: blur(18px);
 }
 
+.user-menu-backdrop {
+  display: none;
+}
+
 .user-menu.open {
   display: grid;
   gap: 4px;
 }
 
+.user-menu-header {
+  display: none;
+}
+
+.user-menu-title {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.user-menu-subtitle {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .user-menu-item,
 .add-user-button {
   width: 100%;
-  min-height: 40px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -1537,6 +1559,60 @@ details[open] > .history-group-header::before {
   .app-subtitle {
     display: none;
   }
+
+  .user-menu-backdrop.open {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: block;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .user-menu {
+    position: fixed;
+    top: 50%;
+    right: auto;
+    left: 50%;
+    z-index: 9999;
+    width: min(360px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    max-height: min(70vh, 520px);
+    overflow-y: auto;
+    padding: 16px;
+    border-radius: 22px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    transform: translate(-50%, -50%) scale(0.98);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6);
+  }
+
+  .user-menu.open {
+    display: grid;
+    gap: 8px;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .user-menu-header {
+    display: block;
+    padding: 2px 4px 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .user-menu-item,
+  .add-user-button {
+    min-height: 52px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .add-user-button {
+    margin-top: 6px;
+    border-color: var(--border);
+    background: rgba(255, 255, 255, 0.035);
+  }
 }
 
 @media (max-width: 640px) {
@@ -1607,10 +1683,10 @@ details[open] > .history-group-header::before {
   }
 
   .user-menu {
-    top: 72px;
-    right: 16px;
-    left: 16px;
-    width: auto;
+    top: 50%;
+    right: auto;
+    left: 50%;
+    width: min(360px, calc(100vw - 32px));
     min-width: 0;
     max-width: calc(100vw - 32px);
   }

@@ -11,6 +11,7 @@ const userButton = document.getElementById("userButton");
 const userAvatar = document.getElementById("userAvatar");
 const userName = document.getElementById("userName");
 const userMenu = document.getElementById("userMenu");
+const userMenuBackdrop = document.getElementById("userMenuBackdrop");
 const todayTabButton = document.getElementById("todayTabButton");
 const statsTabButton = document.getElementById("statsTabButton");
 const historyTabButton = document.getElementById("historyTabButton");
@@ -859,6 +860,20 @@ function renderUserSwitcher() {
   userName.textContent = activeUser.name;
   userMenu.innerHTML = "";
 
+  const menuHeader = document.createElement("div");
+  const menuTitle = document.createElement("div");
+  const menuSubtitle = document.createElement("div");
+
+  menuHeader.className = "user-menu-header";
+  menuTitle.className = "user-menu-title";
+  menuSubtitle.className = "user-menu-subtitle";
+  menuTitle.textContent = "Przełącz użytkownika";
+  menuSubtitle.textContent = "Wybierz profil, którego cele i statystyki chcesz zobaczyć.";
+
+  menuHeader.appendChild(menuTitle);
+  menuHeader.appendChild(menuSubtitle);
+  userMenu.appendChild(menuHeader);
+
   Object.keys(appData.users).forEach(function(userId) {
     const user = appData.users[userId];
     const item = document.createElement("button");
@@ -876,7 +891,7 @@ function renderUserSwitcher() {
     item.addEventListener("click", function() {
       appData.activeUserId = userId;
       saveAppData();
-      userMenu.className = "user-menu";
+      closeUserMenu();
       renderApp();
     });
 
@@ -911,18 +926,20 @@ function addNewUser() {
   };
   appData.activeUserId = userId;
   saveAppData();
-  userMenu.className = "user-menu";
+  closeUserMenu();
   selectedDate = today;
   renderApp();
 }
 
 function closeUserMenu() {
   userMenu.className = "user-menu";
+  userMenuBackdrop.className = "user-menu-backdrop";
   userButton.setAttribute("aria-expanded", "false");
 }
 
 function openUserMenu() {
   userMenu.className = "user-menu open";
+  userMenuBackdrop.className = "user-menu-backdrop open";
   userButton.setAttribute("aria-expanded", "true");
 }
 
@@ -1842,6 +1859,10 @@ clearLocalDataButton.addEventListener("click", function() {
 
 userButton.addEventListener("click", function() {
   toggleUserMenu();
+});
+
+userMenuBackdrop.addEventListener("click", function() {
+  closeUserMenu();
 });
 
 document.addEventListener("click", function(event) {
