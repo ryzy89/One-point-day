@@ -1585,12 +1585,20 @@ function setGoalStatus(dateKey, status) {
   }
 
   const wasDone = goals[dateKey].done === true;
+  const clickedActiveDone = status === "done" && goals[dateKey].done === true;
+  const clickedActiveFailed = status === "not-done" && goals[dateKey].done === false;
 
-  goals[dateKey].status = status;
-  goals[dateKey].done = status === "done";
+  // Ponowne kliknięcie aktywnego statusu cofa decyzję do "brak decyzji".
+  if (clickedActiveDone || clickedActiveFailed) {
+    goals[dateKey].status = "waiting";
+    goals[dateKey].done = null;
+  } else {
+    goals[dateKey].status = status;
+    goals[dateKey].done = status === "done";
 
-  if (status === "not-done") {
-    goals[dateKey].done = false;
+    if (status === "not-done") {
+      goals[dateKey].done = false;
+    }
   }
 
   saveGoals(goals);
