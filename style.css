@@ -239,6 +239,14 @@ input {
   transition: transform var(--ease-soft), border-color var(--ease), background var(--ease), box-shadow var(--ease-soft);
 }
 
+.app-footer {
+  padding: 4px 2px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  opacity: 0.72;
+}
+
 .app-topbar {
   position: relative;
   z-index: 100;
@@ -283,6 +291,7 @@ input {
 }
 
 .app-logo {
+  position: relative;
   width: 34px;
   height: 34px;
   display: grid;
@@ -291,8 +300,29 @@ input {
   border-radius: 12px;
   color: var(--accent);
   background: var(--accent-soft);
-  font-size: 13px;
+  font-size: 0;
   line-height: 1;
+}
+
+.app-logo::before,
+.app-logo::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+}
+
+.app-logo::before {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--accent);
+  opacity: 0.9;
+}
+
+.app-logo::after {
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+  box-shadow: 0 0 18px var(--accent-soft);
 }
 
 .app-name {
@@ -405,6 +435,13 @@ input {
   color: var(--text);
   background: rgba(255, 255, 255, 0.04);
   box-shadow: none;
+}
+
+.user-button::before {
+  content: "◌";
+  color: var(--accent);
+  font-size: 13px;
+  line-height: 1;
 }
 
 .user-button:hover {
@@ -747,6 +784,31 @@ h3 {
 
 .history-panel h2::before {
   content: "≡";
+}
+
+.stats-panel::before {
+  content: "Statystyki";
+  display: block;
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.stats-panel::after {
+  content: "▥";
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  color: var(--accent);
+  font-size: 15px;
+  opacity: 0.75;
+}
+
+.stats-panel {
+  position: relative;
 }
 
 .date-picker {
