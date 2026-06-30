@@ -25,6 +25,7 @@ body.theme-dark {
   --radius-card: 20px;
   --radius-control: 12px;
   --ease: 160ms ease;
+  --ease-soft: 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body.theme-light {
@@ -219,7 +220,7 @@ input {
   margin: 0 auto;
   padding: 32px 0;
   display: grid;
-  gap: 18px;
+  gap: 20px;
 }
 
 .app-topbar,
@@ -235,7 +236,7 @@ input {
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
   animation: fade-in 420ms ease both;
-  transition: transform var(--ease), border-color var(--ease), background var(--ease), box-shadow var(--ease);
+  transition: transform var(--ease-soft), border-color var(--ease), background var(--ease), box-shadow var(--ease-soft);
 }
 
 .app-topbar {
@@ -245,7 +246,7 @@ input {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   overflow: visible;
   padding: 14px 16px;
   border-radius: 22px;
@@ -253,12 +254,12 @@ input {
 
 .today-panel,
 .history-panel {
-  padding: 24px;
+  padding: 26px;
 }
 
 .today-panel {
   display: grid;
-  gap: 28px;
+  gap: 24px;
 }
 
 .app-topbar:hover,
@@ -325,6 +326,7 @@ input {
   background: transparent;
   box-shadow: none;
   font-weight: 600;
+  transition: color var(--ease), background var(--ease-soft), transform var(--ease), box-shadow var(--ease);
 }
 
 .tab-button:hover {
@@ -443,15 +445,23 @@ input {
   background: var(--card);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(18px);
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top right;
+  transition: opacity var(--ease-soft), transform var(--ease-soft), visibility var(--ease);
 }
 
 .user-menu-backdrop {
   display: none;
+  opacity: 0;
+  transition: opacity var(--ease-soft), backdrop-filter var(--ease-soft);
 }
 
 .user-menu.open {
   display: grid;
   gap: 4px;
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .user-menu-header {
@@ -576,13 +586,14 @@ h3 {
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--card);
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  transition: transform var(--ease-soft), border-color var(--ease), background var(--ease), box-shadow var(--ease-soft);
 }
 
 .kpi-card:hover {
   transform: translateY(-2px);
   border-color: var(--accent-border);
   background: var(--card-hover);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.18);
 }
 
 .kpi-value {
@@ -716,6 +727,26 @@ h3 {
 .charts-dashboard,
 .side-missions {
   padding: 18px;
+}
+
+.side-missions h2::before,
+.charts-dashboard h2::before,
+.history-panel h2::before {
+  margin-right: 8px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.side-missions h2::before {
+  content: "□";
+}
+
+.charts-dashboard h2::before {
+  content: "▥";
+}
+
+.history-panel h2::before {
+  content: "≡";
 }
 
 .date-picker {
@@ -862,10 +893,25 @@ button:hover {
   box-shadow: 0 10px 28px var(--accent-soft);
 }
 
+button:active {
+  transform: scale(0.98);
+}
+
 button:focus-visible,
-input:focus-visible {
-  outline: 2px solid var(--accent-border);
-  outline-offset: 2px;
+input:focus-visible,
+summary:focus-visible,
+.tab-button:focus-visible,
+.user-button:focus-visible,
+.user-menu-item:focus-visible,
+.add-user-button:focus-visible,
+.history-feed-main:focus-visible,
+.history-group-header:focus-visible,
+.history-open-day:focus-visible,
+.mission-check:focus-visible,
+.mission-delete-button:focus-visible,
+.kpi-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 button.secondary,
@@ -929,6 +975,13 @@ button.status-failed,
     radial-gradient(circle at top right, var(--accent-soft), transparent 34%),
     var(--card);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+  transition: transform var(--ease-soft), border-color var(--ease), background var(--ease), box-shadow var(--ease-soft);
+}
+
+.goal-hero-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 28px 88px rgba(0, 0, 0, 0.26);
 }
 
 .goal-hero-card::before {
@@ -955,6 +1008,12 @@ button.status-failed,
   font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.12em;
+}
+
+.goal-hero-eyebrow::before {
+  content: "◎";
+  margin-right: 8px;
+  color: var(--accent);
 }
 
 .goal-hero-title {
@@ -1309,7 +1368,7 @@ button.status-failed,
   border-radius: 14px;
   cursor: pointer;
   list-style: none;
-  transition: background var(--ease), border-color var(--ease);
+  transition: background var(--ease), border-color var(--ease), transform var(--ease-soft);
 }
 
 .history-feed-main::-webkit-details-marker,
@@ -1319,6 +1378,7 @@ button.status-failed,
 
 .history-feed-main:hover {
   background: rgba(255, 255, 255, 0.035);
+  transform: translateX(2px);
 }
 
 .history-feed-date {
@@ -1377,6 +1437,16 @@ button.status-failed,
   padding: 4px 14px 18px 148px;
   color: var(--muted);
   font-size: 13px;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+details[open] .history-feed-details {
+  animation: details-in 220ms ease both;
+}
+
+details[open] > .history-group-body {
+  animation: details-in 220ms ease both;
 }
 
 .history-feed-details p {
@@ -1494,6 +1564,18 @@ details[open] > .history-group-header::before {
   }
 }
 
+@keyframes details-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes confetti-fall {
   to {
     transform: translateY(110vh) rotate(540deg);
@@ -1565,6 +1647,7 @@ details[open] > .history-group-header::before {
     inset: 0;
     z-index: 9998;
     display: block;
+    opacity: 1;
     background: rgba(0, 0, 0, 0.72);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -1653,6 +1736,17 @@ details[open] > .history-group-header::before {
     padding: 16px;
   }
 
+  .today-panel {
+    gap: 20px;
+  }
+
+  .side-missions,
+  .charts-dashboard,
+  .backup-data,
+  .stats-panel {
+    padding: 16px;
+  }
+
   .theme-switcher {
     justify-content: center;
   }
@@ -1664,6 +1758,7 @@ details[open] > .history-group-header::before {
   .goal-hero-card {
     padding: 24px;
     border-radius: 22px;
+    margin-bottom: 18px;
   }
 
   .goal-hero-header {
@@ -1766,6 +1861,14 @@ details[open] > .history-group-header::before {
 
   .bar-chart {
     overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }
 
