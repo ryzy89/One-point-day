@@ -24,6 +24,8 @@ const effectivenessPanel = document.getElementById("effectivenessPanel");
 const activityCalendar = document.getElementById("stats-calendar");
 const weeklyChart = document.getElementById("weeklyChart");
 const monthlyChart = document.getElementById("monthlyChart");
+const achievementsGrid = document.getElementById("achievementsGrid");
+const toastContainer = document.getElementById("toastContainer");
 const goalText = document.getElementById("goalText");
 const goalStatus = document.getElementById("goalStatus");
 const doneButton = document.getElementById("doneButton");
@@ -46,6 +48,7 @@ const STORAGE_KEY = "dailyGoals";
 const APP_DATA_KEY = "onePointAppData";
 const THEME_KEY = "appTheme";
 const WELCOME_KEY = "welcomeSeen";
+const SHOWN_ACHIEVEMENTS_KEY = "shownAchievements";
 const today = getTodayDateKey();
 const hasInitialAppData = localStorage.getItem(APP_DATA_KEY) !== null;
 const hasSeenWelcome = localStorage.getItem(WELCOME_KEY) === "true";
@@ -820,6 +823,217 @@ function countBestStreak(goals) {
   return bestStreak;
 }
 
+function hasPerfectDay(goals) {
+  return Object.keys(goals).some(function(dateKey) {
+    const goal = goals[dateKey];
+    const sideMissions = goal.sideMissions || [];
+
+    return goal.done === true
+      && sideMissions.length > 0
+      && sideMissions.every(function(mission) {
+        return mission.done === true;
+      });
+  });
+}
+
+function hasComebackAfterFailure(goals) {
+  return Object.keys(goals).some(function(dateKey) {
+    const nextDateKey = addDays(dateKey, 1);
+
+    return goals[dateKey].done === false
+      && goals[nextDateKey] !== undefined
+      && goals[nextDateKey].done === true;
+  });
+}
+
+const ACHIEVEMENT_IDS = [
+  "first-goal",
+  "ten-goals",
+  "hundred-goals",
+  "seven-day-streak",
+  "thirty-day-streak",
+  "side-missions-25",
+  "perfect-day",
+  "comeback"
+];
+
+function createAchievement(symbol, title, description, progressValue, progressTarget) {
+  const safeProgress = Math.min(progressValue, progressTarget);
+  const unlocked = progressValue >= progressTarget;
+
+  return {
+    symbol: symbol,
+    title: title,
+    description: description,
+    progressValue: safeProgress,
+    progressTarget: progressTarget,
+    progressPercent: progressTarget === 0 ? 0 : Math.min(100, (safeProgress / progressTarget) * 100),
+    unlocked: unlocked
+  };
+}
+
+function getAchievements(goals) {
+  const mainStats = countMainGoalStats(goals);
+  const sideStats = countSideMissionStats(goals);
+  const streak = countStreak(goals);
+  const record = countBestStreak(goals);
+  const bestStreak = Math.max(streak, record);
+  const perfectDayProgress = hasPerfectDay(goals) ? 1 : 0;
+  const comebackProgress = hasComebackAfterFailure(goals) ? 1 : 0;
+
+  return [
+    createAchievement("•", "Pierwszy krok", "Wykonaj swój pierwszy cel dnia.", mainStats.done, 1),
+    createAchievement("10", "Dziesiątka", "Dowieź 10 celów dnia.", mainStats.done, 10),
+    createAchievement("100", "Setka", "Dowieź 100 celów dnia.", mainStats.done, 100),
+    createAchievement("7", "Tydzień konsekwencji", "Utrzymaj serię przez 7 dni.", bestStreak, 7),
+    createAchievement("30", "Miesiąc wojownika", "Utrzymaj serię przez 30 dni.", bestStreak, 30),
+    createAchievement("□", "Misje poboczne", "Wykonaj 25 misji pobocznych.", sideStats.done, 25),
+    createAchievement("◎", "Perfekcyjny dzień", "Wykonaj cel dnia i wszystkie misje poboczne jednego dnia.", perfectDayProgress, 1),
+    createAchievement("↗", "Powrót po porażce", "Wróć na właściwy tor po niewykonanym dniu.", comebackProgress, 1)
+  ].map(function(achievement, index) {
+    achievement.id = ACHIEVEMENT_IDS[index];
+    return achievement;
+  });
+}
+
+function renderAchievementCard(achievement) {
+  const card = document.createElement("article");
+  const icon = document.createElement("div");
+  const content = document.createElement("div");
+  const title = document.createElement("h3");
+  const description = document.createElement("p");
+  const footer = document.createElement("div");
+  const status = document.createElement("span");
+  const progress = document.createElement("span");
+  const progressBar = document.createElement("div");
+  const progressFill = document.createElement("div");
+
+  card.className = achievement.unlocked ? "achievement-card unlocked" : "achievement-card locked";
+  icon.className = "achievement-icon";
+  content.className = "achievement-content";
+  title.className = "achievement-title";
+  description.className = "achievement-description";
+  footer.className = "achievement-footer";
+  status.className = "achievement-status";
+  progress.className = "achievement-progress";
+  progressBar.className = "achievement-progress-bar";
+  progressFill.className = "achievement-progress-fill";
+
+  icon.textContent = achievement.symbol;
+  title.textContent = achievement.title;
+  description.textContent = achievement.description;
+  status.textContent = achievement.unlocked ? "Odblokowane" : "Zablokowane";
+  progress.textContent = `${formatNumber(achievement.progressValue)} / ${formatNumber(achievement.progressTarget)}`;
+  progressFill.style.width = `${achievement.progressPercent}%`;
+
+  content.appendChild(title);
+  content.appendChild(description);
+  footer.appendChild(status);
+  footer.appendChild(progress);
+  progressBar.appendChild(progressFill);
+  content.appendChild(footer);
+  content.appendChild(progressBar);
+  card.appendChild(icon);
+  card.appendChild(content);
+
+  return card;
+}
+
+function renderAchievements() {
+  const goals = loadGoals();
+
+  achievementsGrid.innerHTML = "";
+
+  getAchievements(goals).forEach(function(achievement) {
+    achievementsGrid.appendChild(renderAchievementCard(achievement));
+  });
+}
+
+function getUnlockedAchievementIds(goals) {
+  return getAchievements(goals)
+    .filter(function(achievement) {
+      return achievement.unlocked === true;
+    })
+    .map(function(achievement) {
+      return achievement.id;
+    });
+}
+
+function loadShownAchievements() {
+  return readStorageObject(SHOWN_ACHIEVEMENTS_KEY, {});
+}
+
+function saveShownAchievements(shownAchievements) {
+  localStorage.setItem(SHOWN_ACHIEVEMENTS_KEY, JSON.stringify(shownAchievements));
+}
+
+function getShownAchievementsForActiveUser(shownAchievements) {
+  const activeUserId = appData.activeUserId;
+
+  if (!Array.isArray(shownAchievements[activeUserId])) {
+    shownAchievements[activeUserId] = [];
+  }
+
+  return shownAchievements[activeUserId];
+}
+
+function showAchievementToast(achievement) {
+  const toast = document.createElement("div");
+  const icon = document.createElement("div");
+  const text = document.createElement("div");
+  const title = document.createElement("div");
+  const name = document.createElement("div");
+
+  toast.className = "achievement-toast";
+  icon.className = "achievement-toast-icon";
+  text.className = "achievement-toast-text";
+  title.className = "achievement-toast-title";
+  name.className = "achievement-toast-name";
+
+  icon.textContent = "🏆";
+  title.textContent = "Odblokowano osiągnięcie";
+  name.textContent = achievement.title;
+
+  text.appendChild(title);
+  text.appendChild(name);
+  toast.appendChild(icon);
+  toast.appendChild(text);
+  toastContainer.appendChild(toast);
+
+  requestAnimationFrame(function() {
+    toast.classList.add("show");
+  });
+
+  setTimeout(function() {
+    toast.classList.remove("show");
+  }, 3200);
+
+  setTimeout(function() {
+    toast.remove();
+  }, 3600);
+}
+
+function showNewAchievementToasts(previousUnlockedIds, achievementsAfter) {
+  const shownAchievements = loadShownAchievements();
+  const shownForUser = getShownAchievementsForActiveUser(shownAchievements);
+  let hasChanges = false;
+
+  achievementsAfter.forEach(function(achievement) {
+    const wasUnlockedBefore = previousUnlockedIds.includes(achievement.id);
+    const wasAlreadyShown = shownForUser.includes(achievement.id);
+
+    if (achievement.unlocked === true && !wasUnlockedBefore && !wasAlreadyShown) {
+      showAchievementToast(achievement);
+      shownForUser.push(achievement.id);
+      hasChanges = true;
+    }
+  });
+
+  if (hasChanges) {
+    saveShownAchievements(shownAchievements);
+  }
+}
+
 function getActivityClass(goal) {
   if (isGoalDone(goal)) {
     return "contribution-done";
@@ -1555,6 +1769,7 @@ function renderApp() {
   renderEffectivenessStats();
   renderActivityCalendar();
   renderChartsDashboard();
+  renderAchievements();
   renderToday();
   renderSideMissions();
   renderHistory();
@@ -1584,6 +1799,7 @@ function setGoalStatus(dateKey, status) {
     return;
   }
 
+  const unlockedBefore = getUnlockedAchievementIds(goals);
   const wasDone = goals[dateKey].done === true;
   const clickedActiveDone = status === "done" && goals[dateKey].done === true;
   const clickedActiveFailed = status === "not-done" && goals[dateKey].done === false;
@@ -1603,6 +1819,7 @@ function setGoalStatus(dateKey, status) {
 
   saveGoals(goals);
   renderApp();
+  showNewAchievementToasts(unlockedBefore, getAchievements(goals));
 
   if (goals[dateKey].done === true && wasDone !== true) {
     launchConfetti();
@@ -1651,11 +1868,13 @@ function setSideMissionDone(dateKey, missionIndex, done) {
     return;
   }
 
+  const unlockedBefore = getUnlockedAchievementIds(goals);
   const wasDone = mission.done === true;
 
   mission.done = done;
   saveGoals(goals);
   renderApp();
+  showNewAchievementToasts(unlockedBefore, getAchievements(goals));
 
   if (mission.done === true && wasDone !== true) {
     launchSuccessPop();
@@ -1675,6 +1894,7 @@ function cycleSideMissionDone(dateKey, missionIndex) {
     return;
   }
 
+  const unlockedBefore = getUnlockedAchievementIds(goals);
   const wasDone = mission.done === true;
 
   if (mission.done !== true && mission.done !== false) {
@@ -1687,6 +1907,7 @@ function cycleSideMissionDone(dateKey, missionIndex) {
 
   saveGoals(goals);
   renderApp();
+  showNewAchievementToasts(unlockedBefore, getAchievements(goals));
 
   if (mission.done === true && wasDone !== true) {
     launchSuccessPop();
@@ -1857,6 +2078,7 @@ clearLocalDataButton.addEventListener("click", function() {
   localStorage.removeItem(APP_DATA_KEY);
   localStorage.removeItem(THEME_KEY);
   localStorage.removeItem(WELCOME_KEY);
+  localStorage.removeItem(SHOWN_ACHIEVEMENTS_KEY);
   appData = createDefaultAppData();
   selectedDate = today;
   historyView = "date";

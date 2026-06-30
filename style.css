@@ -228,6 +228,7 @@ input {
 .history-panel,
 .stats-panel,
 .charts-dashboard,
+.achievements-section,
 .backup-data,
 .side-missions {
   border: 1px solid var(--border);
@@ -245,6 +246,63 @@ input {
   font-size: 12px;
   text-align: center;
   opacity: 0.72;
+}
+
+.toast-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 300000;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 48px));
+  pointer-events: none;
+}
+
+.achievement-toast {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.achievement-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.achievement-toast-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-size: 17px;
+}
+
+.achievement-toast-title {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.achievement-toast-name {
+  margin-top: 2px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
 }
 
 .app-topbar {
@@ -275,6 +333,7 @@ input {
 .history-panel:hover,
 .stats-panel:hover,
 .charts-dashboard:hover,
+.achievements-section:hover,
 .backup-data:hover,
 .side-missions:hover,
 .pie-chart-card:hover {
@@ -764,6 +823,137 @@ h3 {
 .charts-dashboard,
 .side-missions {
   padding: 18px;
+}
+
+.achievements-section {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.achievements-header {
+  display: grid;
+  gap: 6px;
+}
+
+.achievements-header h2 {
+  margin-bottom: 0;
+}
+
+.achievements-header h2::before {
+  content: "◇";
+  margin-right: 8px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.achievements-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.achievement-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  min-height: 148px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.achievement-card.unlocked {
+  border-color: var(--accent-border);
+  background: linear-gradient(135deg, var(--accent-soft), rgba(255, 255, 255, 0.03));
+}
+
+.achievement-card.locked {
+  opacity: 0.62;
+}
+
+.achievement-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.achievement-card.unlocked .achievement-icon {
+  color: var(--accent);
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+
+.achievement-content {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.achievement-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.achievement-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.achievement-footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.achievement-status,
+.achievement-progress {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.achievement-card.unlocked .achievement-status {
+  color: var(--success);
+}
+
+.achievement-progress-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.achievement-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
 }
 
 .side-missions h2::before,
@@ -1804,9 +1994,25 @@ details[open] > .history-group-header::before {
 
   .side-missions,
   .charts-dashboard,
+  .achievements-section,
   .backup-data,
   .stats-panel {
     padding: 16px;
+  }
+
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .achievement-card {
+    min-height: auto;
+  }
+
+  .toast-container {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
   }
 
   .theme-switcher {
