@@ -1,51 +1,67 @@
-# Cel dnia
+# One Point Day
 
-Prosta statyczna aplikacja do zapisywania jednego głównego celu dnia, misji pobocznych i śledzenia postępów.
+Aplikacja do codziennego skupienia na jednym najważniejszym celu dnia.
 
-## Co zawiera aplikacja
+Wersja online: https://one-point-day.netlify.app/
 
-- główny cel dnia,
-- zapis danych wielu użytkowników w `localStorage` pod kluczem `onePointAppData`,
-- oznaczanie celu jako zrobiony albo niezrobiony,
-- streak, czyli licznik dni z rzędu z wykonanym głównym celem,
-- statystyki skuteczności i wykresy,
-- kalendarz aktywności,
-- misje poboczne,
-- motyw jasny i ciemny.
+## Idea
+
+One Point Day pomaga ograniczyć chaos codziennych zadań do jednej najważniejszej rzeczy. Użytkownik wybiera główny cel dnia, może dodać mniej ważne misje poboczne, a wieczorem oznacza, co zostało wykonane.
+
+Aplikacja pokazuje streak, statystyki, historię postępów, kalendarz aktywności oraz osiągnięcia. Dane są przechowywane lokalnie w przeglądarce, więc projekt działa bez backendu i bez konta użytkownika.
+
+## Funkcje
+
+- Cel dnia z oznaczeniem: wykonany, niewykonany albo brak decyzji.
+- Misje poboczne jako prosta checklista.
+- Historia dni w formie activity feedu.
+- Statystyki skuteczności.
+- Wykresy kołowe, tygodniowe i miesięczne.
+- Kalendarz aktywności w stylu GitHub Contributions.
+- Osiągnięcia liczone dynamicznie z postępów.
+- Wielu lokalnych użytkowników.
+- Import i eksport danych do pliku JSON.
+- Ekran powitalny i dane demonstracyjne.
+- Tryb jasny i ciemny.
+
+## Technologie
+
+- HTML
+- CSS
+- JavaScript
+- localStorage
+- GitHub
+- Netlify
 
 ## Jak uruchomić lokalnie
 
-Otwórz plik `index.html` w przeglądarce.
+1. Pobierz albo sklonuj repozytorium.
+2. Otwórz plik `index.html` w przeglądarce.
 
-Aplikacja nie wymaga backendu, bazy danych ani instalowania zależności. Wszystkie dane zapisują się lokalnie w przeglądarce.
+Aplikacja nie wymaga instalowania zależności, backendu, bundlera ani komend `npm`.
 
-Dane starszej wersji zapisane pod kluczem `dailyGoals` są automatycznie przenoszone do użytkownika Łukasz. Aplikacja po migracji korzysta z `onePointAppData`.
+## Jak działa zapis danych
 
-## Publikacja na GitHub Pages
+Dane są zapisywane lokalnie w `localStorage` przeglądarki. Oznacza to, że cele, historia, statystyki i użytkownicy są dostępni na tym urządzeniu i w tej konkretnej przeglądarce.
 
-1. Utwórz nowe repozytorium na GitHubie.
-2. Dodaj do repozytorium pliki:
-   - `index.html`
-   - `style.css`
-   - `app.js`
-   - `README.md`
-3. Wejdź w `Settings` repozytorium.
-4. Otwórz sekcję `Pages`.
-5. Wybierz źródło publikacji:
-   - `Deploy from a branch`
-   - branch: `main`
-   - folder: `/root`
-6. Zapisz ustawienia.
-7. Po chwili GitHub pokaże adres strony.
+Dane nie synchronizują się jeszcze automatycznie między urządzeniami. Do przenoszenia danych można użyć importu i eksportu pliku JSON w aplikacji.
 
-## Publikacja na Netlify
+## Status projektu
 
-1. Wejdź na Netlify i utwórz nową stronę.
-2. Wybierz opcję ręcznego uploadu albo połącz repozytorium z GitHubem.
-3. Jeśli robisz upload ręczny, wrzuć cały folder z plikami aplikacji.
-4. Nie ustawiaj komendy buildowania.
-5. Jako katalog publikacji wybierz folder główny projektu.
+Projekt w aktywnym rozwoju.
 
-## Ważne
+Aktualna wersja: `v0.1.1`
 
-Dane są zapisane w `localStorage`, więc są lokalne dla danej przeglądarki i urządzenia. Po opublikowaniu aplikacji online każdy użytkownik będzie miał swoje własne dane w swojej przeglądarce.
+## Roadmapa
+
+- Supabase i synchronizacja danych.
+- Logowanie użytkowników.
+- Migracja z `localStorage` do kont użytkowników.
+- Rozbudowany panel postępów.
+- Dalsze poprawki UI/UX.
+
+## Publikacja
+
+Projekt jest statyczną aplikacją webową. Można go publikować na Netlify, GitHub Pages albo innym hostingu statycznym.
+
+Na Netlify nie trzeba ustawiać komendy buildowania. Wystarczy opublikować główny katalog projektu zawierający pliki `index.html`, `style.css` i `app.js`.
