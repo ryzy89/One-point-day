@@ -215,6 +215,74 @@ input {
   min-width: 190px;
 }
 
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 210000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.onboarding-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 22px;
+  padding: 30px;
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  background: var(--card);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(18px);
+}
+
+.onboarding-progress {
+  width: fit-content;
+  padding: 6px 10px;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.onboarding-step {
+  display: grid;
+  gap: 10px;
+}
+
+.onboarding-title {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.onboarding-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.onboarding-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.onboarding-skip,
+.onboarding-next {
+  min-width: 128px;
+}
+
 .app {
   width: min(1260px, calc(100% - 72px));
   margin: 0 auto;
@@ -2053,6 +2121,26 @@ details[open] > .history-group-header::before {
     gap: 16px;
     padding: 28px 20px;
     border-radius: 24px;
+  }
+
+  .onboarding-overlay {
+    padding: 16px;
+  }
+
+  .onboarding-card {
+    gap: 18px;
+    padding: 24px 20px;
+    border-radius: 22px;
+  }
+
+  .onboarding-actions {
+    flex-direction: column-reverse;
+  }
+
+  .onboarding-skip,
+  .onboarding-next {
+    width: 100%;
+    min-height: 44px;
   }
 
   .welcome-logo,

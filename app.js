@@ -3,6 +3,12 @@ const appRoot = document.getElementById("appRoot");
 const startScreen = document.getElementById("startScreen");
 const startEmptyButton = document.getElementById("startEmptyButton");
 const loadDemoButton = document.getElementById("loadDemoButton");
+const onboardingOverlay = document.getElementById("onboardingOverlay");
+const onboardingProgress = document.getElementById("onboardingProgress");
+const onboardingTitle = document.getElementById("onboardingTitle");
+const onboardingDescription = document.getElementById("onboardingDescription");
+const onboardingSkipButton = document.getElementById("onboardingSkipButton");
+const onboardingNextButton = document.getElementById("onboardingNextButton");
 const goalInput = document.getElementById("goalInput");
 const dateInput = document.getElementById("dateInput");
 const lightThemeButton = document.getElementById("lightThemeButton");
@@ -49,13 +55,31 @@ const APP_DATA_KEY = "onePointAppData";
 const THEME_KEY = "appTheme";
 const WELCOME_KEY = "welcomeSeen";
 const SHOWN_ACHIEVEMENTS_KEY = "shownAchievements";
+const ONBOARDING_KEY = "onboardingSeen";
 const today = getTodayDateKey();
 const hasInitialAppData = localStorage.getItem(APP_DATA_KEY) !== null;
 const hasSeenWelcome = localStorage.getItem(WELCOME_KEY) === "true";
+const hasSeenOnboarding = localStorage.getItem(ONBOARDING_KEY) === "true";
 let appData = loadAppData();
 let selectedDate = today;
 let historyView = "date";
 let activeTab = "today";
+let onboardingStepIndex = 0;
+
+const onboardingSteps = [
+  {
+    title: "Wybierz jeden cel dnia",
+    description: "Każdego ranka zapisz jedną najważniejszą rzecz, którą chcesz dowieźć."
+  },
+  {
+    title: "Dodaj misje poboczne",
+    description: "Dopisz mniejsze zadania, które są mile widziane, ale nie ważniejsze niż cel główny."
+  },
+  {
+    title: "Zamknij dzień wieczorem",
+    description: "Oznacz cel jako zrobiony albo niezrobiony. Na tej podstawie aplikacja policzy streak, statystyki i osiągnięcia."
+  }
+];
 
 // Tworzymy tekstowy klucz dla dzisiejszej daty, np. "2026-06-19".
 // Przy starcie aplikacji selectedDate dostaje właśnie tę wartość.
@@ -398,6 +422,7 @@ function showStartScreen() {
   const hasSavedAppData = localStorage.getItem(APP_DATA_KEY) !== null;
 
   startScreen.className = "start-screen";
+  onboardingOverlay.className = "onboarding-overlay hidden";
   appRoot.className = "app hidden";
   loadDemoButton.hidden = hasSavedAppData;
 }
@@ -407,17 +432,53 @@ function hideStartScreen() {
   appRoot.className = "app";
 }
 
-function finishWelcome() {
+function showAppRoot() {
+  appRoot.className = "app";
+}
+
+function hideAppRoot() {
+  appRoot.className = "app hidden";
+}
+
+function renderOnboardingStep() {
+  const step = onboardingSteps[onboardingStepIndex];
+  const stepNumber = onboardingStepIndex + 1;
+
+  onboardingProgress.textContent = `${stepNumber}/3`;
+  onboardingTitle.textContent = step.title;
+  onboardingDescription.textContent = step.description;
+  onboardingNextButton.textContent = stepNumber === onboardingSteps.length ? "Zaczynamy" : "Dalej";
+}
+
+function showOnboarding() {
+  onboardingStepIndex = 0;
+  renderOnboardingStep();
+  onboardingOverlay.className = "onboarding-overlay";
+  hideAppRoot();
+}
+
+function finishOnboarding() {
+  localStorage.setItem(ONBOARDING_KEY, "true");
+  onboardingOverlay.className = "onboarding-overlay hidden";
+  showAppRoot();
+}
+
+function finishWelcome(shouldShowOnboarding) {
   localStorage.setItem(WELCOME_KEY, "true");
   startScreen.classList.add("is-leaving");
 
   setTimeout(function() {
     hideStartScreen();
     startScreen.classList.remove("is-leaving");
+    if (shouldShowOnboarding && localStorage.getItem(ONBOARDING_KEY) !== "true") {
+      showOnboarding();
+    } else {
+      showAppRoot();
+    }
   }, 260);
 }
 
-function startWithAppData(newAppData) {
+function startWithAppData(newAppData, shouldShowOnboarding) {
   localStorage.setItem(APP_DATA_KEY, JSON.stringify(newAppData));
   appData = loadAppData();
   selectedDate = today;
@@ -425,7 +486,7 @@ function startWithAppData(newAppData) {
   applyTheme(loadTheme());
   setActiveTab("today");
   renderApp();
-  finishWelcome();
+  finishWelcome(shouldShowOnboarding);
 }
 
 function enterExistingApp() {
@@ -434,7 +495,7 @@ function enterExistingApp() {
   applyTheme(loadTheme());
   setActiveTab("today");
   renderApp();
-  finishWelcome();
+  finishWelcome(localStorage.getItem(ONBOARDING_KEY) !== "true");
 }
 
 function getActiveUser() {
@@ -2017,7 +2078,7 @@ darkThemeButton.addEventListener("click", function() {
 
 startEmptyButton.addEventListener("click", function() {
   if (localStorage.getItem(APP_DATA_KEY) === null) {
-    startWithAppData(appData);
+    startWithAppData(appData, true);
     return;
   }
 
@@ -2030,7 +2091,22 @@ loadDemoButton.addEventListener("click", function() {
     return;
   }
 
-  startWithAppData(createDemoAppData());
+  localStorage.setItem(ONBOARDING_KEY, "true");
+  startWithAppData(createDemoAppData(), false);
+});
+
+onboardingSkipButton.addEventListener("click", function() {
+  finishOnboarding();
+});
+
+onboardingNextButton.addEventListener("click", function() {
+  if (onboardingStepIndex === onboardingSteps.length - 1) {
+    finishOnboarding();
+    return;
+  }
+
+  onboardingStepIndex = onboardingStepIndex + 1;
+  renderOnboardingStep();
 });
 
 exportDataButton.addEventListener("click", function() {
@@ -2078,6 +2154,7 @@ clearLocalDataButton.addEventListener("click", function() {
   localStorage.removeItem(APP_DATA_KEY);
   localStorage.removeItem(THEME_KEY);
   localStorage.removeItem(WELCOME_KEY);
+  localStorage.removeItem(ONBOARDING_KEY);
   localStorage.removeItem(SHOWN_ACHIEVEMENTS_KEY);
   appData = createDefaultAppData();
   selectedDate = today;
@@ -2105,6 +2182,11 @@ document.addEventListener("click", function(event) {
 
 document.addEventListener("keydown", function(event) {
   if (event.key === "Escape") {
+    if (!onboardingOverlay.classList.contains("hidden")) {
+      finishOnboarding();
+      return;
+    }
+
     closeUserMenu();
     userButton.focus();
   }
@@ -2174,6 +2256,11 @@ if (hasInitialAppData && hasSeenWelcome) {
   hideStartScreen();
   setActiveTab("today");
   renderApp();
+  if (hasSeenOnboarding) {
+    showAppRoot();
+  } else {
+    showOnboarding();
+  }
 } else {
   showStartScreen();
 }
