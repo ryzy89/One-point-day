@@ -46,10 +46,13 @@ const exportDataButton = document.getElementById("exportDataButton");
 const importDataButton = document.getElementById("importDataButton");
 const importDataInput = document.getElementById("importDataInput");
 const clearLocalDataButton = document.getElementById("clearLocalDataButton");
+const supabaseModeIndicator = document.getElementById("supabaseModeIndicator");
 
 startEmptyButton.textContent = "Rozpocznij";
 loadDemoButton.textContent = "Załaduj dane demonstracyjne";
 
+const SUPABASE_URL = "https://gtarmdpdmsxqidwajvhb.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_SOyMDhwK9c4onReVOplVOw_17O_97KL";
 const STORAGE_KEY = "dailyGoals";
 const APP_DATA_KEY = "onePointAppData";
 const THEME_KEY = "appTheme";
@@ -60,6 +63,7 @@ const today = getTodayDateKey();
 const hasInitialAppData = localStorage.getItem(APP_DATA_KEY) !== null;
 const hasSeenWelcome = localStorage.getItem(WELCOME_KEY) === "true";
 const hasSeenOnboarding = localStorage.getItem(ONBOARDING_KEY) === "true";
+const supabaseClient = initSupabaseClient();
 let appData = loadAppData();
 let selectedDate = today;
 let historyView = "date";
@@ -80,6 +84,48 @@ const onboardingSteps = [
     description: "Oznacz cel jako zrobiony albo niezrobiony. Na tej podstawie aplikacja policzy streak, statystyki i osiągnięcia."
   }
 ];
+
+function initSupabaseClient() {
+  if (typeof window === "undefined" || !window.supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    return null;
+  }
+
+  try {
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (error) {
+    console.warn("Supabase init failed:", error);
+    return null;
+  }
+}
+
+function updateSupabaseModeIndicator() {
+  if (!supabaseModeIndicator) {
+    return;
+  }
+
+  supabaseModeIndicator.textContent = supabaseClient ? "Supabase połączony" : "Tryb lokalny";
+  supabaseModeIndicator.className = supabaseClient ? "supabase-mode connected" : "supabase-mode local";
+}
+
+async function testSupabaseConnection() {
+  if (!supabaseClient) {
+    console.info("Supabase client unavailable. Local mode active.");
+    return false;
+  }
+
+  const { error } = await supabaseClient
+    .from("daily_goals")
+    .select("id")
+    .limit(1);
+
+  if (error) {
+    console.warn("Supabase connection test failed:", error);
+    return false;
+  }
+
+  console.info("Supabase connection OK");
+  return true;
+}
 
 // Tworzymy tekstowy klucz dla dzisiejszej daty, np. "2026-06-19".
 // Przy starcie aplikacji selectedDate dostaje właśnie tę wartość.
@@ -2251,6 +2297,10 @@ notDoneButton.addEventListener("click", function() {
 });
 
 applyTheme(loadTheme());
+updateSupabaseModeIndicator();
+testSupabaseConnection().catch(function(error) {
+  console.warn("Supabase connection test failed:", error);
+});
 
 if (hasInitialAppData && hasSeenWelcome) {
   hideStartScreen();
