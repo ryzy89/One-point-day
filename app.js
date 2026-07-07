@@ -47,6 +47,17 @@ const importDataButton = document.getElementById("importDataButton");
 const importDataInput = document.getElementById("importDataInput");
 const clearLocalDataButton = document.getElementById("clearLocalDataButton");
 const supabaseModeIndicator = document.getElementById("supabaseModeIndicator");
+const authPanel = document.getElementById("authPanel");
+const authButton = document.getElementById("authButton");
+const authUser = document.getElementById("authUser");
+const authEmail = document.getElementById("authEmail");
+const authSignOutButton = document.getElementById("authSignOutButton");
+const authModal = document.getElementById("authModal");
+const authForm = document.getElementById("authForm");
+const authEmailInput = document.getElementById("authEmailInput");
+const authStatus = document.getElementById("authStatus");
+const authCancelButton = document.getElementById("authCancelButton");
+const authSubmitButton = document.getElementById("authSubmitButton");
 
 startEmptyButton.textContent = "Rozpocznij";
 loadDemoButton.textContent = "Załaduj dane demonstracyjne";
@@ -69,6 +80,7 @@ let selectedDate = today;
 let historyView = "date";
 let activeTab = "today";
 let onboardingStepIndex = 0;
+let authSession = null;
 
 const onboardingSteps = [
   {
@@ -125,6 +137,130 @@ async function testSupabaseConnection() {
 
   console.info("Supabase connection OK");
   return true;
+}
+
+function getSessionEmail(session) {
+  return session && session.user && session.user.email ? session.user.email : "";
+}
+
+function formatAuthEmail(email) {
+  if (email.length <= 28) {
+    return email;
+  }
+
+  return `${email.slice(0, 14)}...${email.slice(-10)}`;
+}
+
+function renderAuthUI() {
+  if (!authPanel) {
+    return;
+  }
+
+  if (!supabaseClient) {
+    authPanel.className = "auth-panel hidden";
+    return;
+  }
+
+  const email = getSessionEmail(authSession);
+  authPanel.className = "auth-panel";
+
+  if (email) {
+    authButton.className = "auth-button secondary hidden";
+    authUser.className = "auth-user";
+    authEmail.textContent = formatAuthEmail(email);
+    authEmail.title = email;
+  } else {
+    authButton.className = "auth-button secondary";
+    authUser.className = "auth-user hidden";
+    authEmail.textContent = "";
+    authEmail.removeAttribute("title");
+  }
+}
+
+function openAuthModal() {
+  if (!supabaseClient) {
+    return;
+  }
+
+  authStatus.textContent = "";
+  authEmailInput.value = "";
+  authModal.className = "auth-modal";
+  authEmailInput.focus();
+}
+
+function closeAuthModal() {
+  authModal.className = "auth-modal hidden";
+}
+
+async function getCurrentSession() {
+  if (!supabaseClient) {
+    authSession = null;
+    renderAuthUI();
+    return null;
+  }
+
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.warn("Supabase auth session failed:", error);
+    authSession = null;
+  } else {
+    authSession = data.session;
+  }
+
+  renderAuthUI();
+  return authSession;
+}
+
+async function signInWithEmail(email) {
+  if (!supabaseClient) {
+    return false;
+  }
+
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email: email,
+    options: {
+      emailRedirectTo: window.location.origin
+    }
+  });
+
+  if (error) {
+    console.warn("Supabase magic link failed:", error);
+    return false;
+  }
+
+  return true;
+}
+
+async function signOut() {
+  if (!supabaseClient) {
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    console.warn("Supabase sign out failed:", error);
+    return;
+  }
+
+  authSession = null;
+  renderAuthUI();
+}
+
+function setupAuthStateListener() {
+  if (!supabaseClient) {
+    renderAuthUI();
+    return;
+  }
+
+  supabaseClient.auth.onAuthStateChange(function(_event, session) {
+    authSession = session;
+    renderAuthUI();
+    closeAuthModal();
+  });
+
+  getCurrentSession();
 }
 
 // Tworzymy tekstowy klucz dla dzisiejszej daty, np. "2026-06-19".
@@ -2122,6 +2258,38 @@ darkThemeButton.addEventListener("click", function() {
   applyTheme("dark");
 });
 
+authButton.addEventListener("click", function() {
+  openAuthModal();
+});
+
+authCancelButton.addEventListener("click", function() {
+  closeAuthModal();
+});
+
+authSignOutButton.addEventListener("click", function() {
+  signOut();
+});
+
+authForm.addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  const email = authEmailInput.value.trim();
+
+  if (email === "") {
+    return;
+  }
+
+  authSubmitButton.disabled = true;
+  authStatus.textContent = "Wysyłanie linku...";
+
+  const sent = await signInWithEmail(email);
+
+  authSubmitButton.disabled = false;
+  authStatus.textContent = sent
+    ? "Sprawdź pocztę i kliknij link logowania."
+    : "Nie udało się wysłać linku. Sprawdź email i spróbuj ponownie.";
+});
+
 startEmptyButton.addEventListener("click", function() {
   if (localStorage.getItem(APP_DATA_KEY) === null) {
     startWithAppData(appData, true);
@@ -2233,6 +2401,11 @@ document.addEventListener("keydown", function(event) {
       return;
     }
 
+    if (!authModal.classList.contains("hidden")) {
+      closeAuthModal();
+      return;
+    }
+
     closeUserMenu();
     userButton.focus();
   }
@@ -2298,6 +2471,7 @@ notDoneButton.addEventListener("click", function() {
 
 applyTheme(loadTheme());
 updateSupabaseModeIndicator();
+setupAuthStateListener();
 testSupabaseConnection().catch(function(error) {
   console.warn("Supabase connection test failed:", error);
 });

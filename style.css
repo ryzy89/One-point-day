@@ -283,6 +283,67 @@ input {
   min-width: 128px;
 }
 
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 220000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.auth-card {
+  width: min(460px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 26px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(18px);
+}
+
+.auth-kicker {
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.auth-card h2 {
+  margin-bottom: 8px;
+}
+
+.auth-card p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-card label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.auth-status {
+  min-height: 21px;
+}
+
+.auth-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .app {
   width: min(1260px, calc(100% - 72px));
   margin: 0 auto;
@@ -540,6 +601,39 @@ input {
   color: var(--muted);
   font-size: 12px;
   font-weight: 500;
+}
+
+.auth-panel {
+  display: flex;
+  align-items: center;
+}
+
+.auth-button,
+.auth-signout {
+  min-height: 40px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.auth-user {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 5px 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.auth-user span {
+  max-width: 170px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-actions {
@@ -2161,6 +2255,24 @@ details[open] > .history-group-header::before {
     min-height: 44px;
   }
 
+  .auth-modal {
+    padding: 16px;
+  }
+
+  .auth-card {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+
+  .auth-actions {
+    flex-direction: column-reverse;
+  }
+
+  .auth-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+
   .welcome-logo,
   .start-card h1,
   .welcome-subtitle,
@@ -2261,6 +2373,8 @@ details[open] > .history-group-header::before {
   .small-button,
   .history-open-day,
   .theme-switcher button,
+  .auth-button,
+  .auth-signout,
   .user-button,
   .add-user-button,
   .delete-button {

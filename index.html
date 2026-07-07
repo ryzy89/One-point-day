@@ -66,6 +66,14 @@
           <button id="darkThemeButton" type="button">Ciemny</button>
         </div>
 
+        <div id="authPanel" class="auth-panel">
+          <button id="authButton" class="auth-button secondary" type="button">Zaloguj</button>
+          <div id="authUser" class="auth-user hidden">
+            <span id="authEmail"></span>
+            <button id="authSignOutButton" class="auth-signout secondary" type="button">Wyloguj</button>
+          </div>
+        </div>
+
         <div class="user-switcher">
           <button id="userButton" class="user-button" type="button" aria-haspopup="true" aria-expanded="false">
             <span id="userAvatar" class="user-avatar">Ł</span>
@@ -185,6 +193,23 @@
   </main>
 
   <div id="toastContainer" class="toast-container"></div>
+
+  <section id="authModal" class="auth-modal hidden" aria-labelledby="authModalTitle">
+    <form id="authForm" class="auth-card">
+      <div>
+        <div class="auth-kicker">Konto Supabase</div>
+        <h2 id="authModalTitle">Zaloguj przez email</h2>
+        <p>Wyślemy Ci link logowania na email.</p>
+      </div>
+      <label for="authEmailInput">Email</label>
+      <input id="authEmailInput" class="auth-email-input" type="email" placeholder="twoj@email.pl" autocomplete="email" required>
+      <p id="authStatus" class="auth-status"></p>
+      <div class="auth-actions">
+        <button id="authCancelButton" class="secondary" type="button">Anuluj</button>
+        <button id="authSubmitButton" type="submit">Wyślij link logowania</button>
+      </div>
+    </form>
+  </section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
