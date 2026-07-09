@@ -248,7 +248,8 @@ async function signInWithEmail(email) {
   if (!supabaseClient) {
     return {
       ok: false,
-      message: "Nie udało się wysłać linku. Sprawdź email i spróbuj ponownie."
+      message: "Nie udało się wysłać linku. Sprawdź email i spróbuj ponownie.",
+      rateLimited: false
     };
   }
 
@@ -264,20 +265,23 @@ async function signInWithEmail(email) {
       console.warn("Supabase email rate limit exceeded");
       return {
         ok: false,
-        message: "Za dużo prób wysłania linku. Odczekaj kilka minut i spróbuj ponownie."
+        message: "Za dużo prób wysłania linku. Odczekaj kilka minut i spróbuj ponownie.",
+        rateLimited: true
       };
     }
 
     console.warn("Supabase magic link failed:", error);
     return {
       ok: false,
-      message: "Nie udało się wysłać linku. Sprawdź email i spróbuj ponownie."
+      message: "Nie udało się wysłać linku. Sprawdź email i spróbuj ponownie.",
+      rateLimited: false
     };
   }
 
   return {
     ok: true,
-    message: "Sprawdź pocztę i kliknij link logowania."
+    message: "Sprawdź pocztę i kliknij link logowania.",
+    rateLimited: false
   };
 }
 
@@ -287,6 +291,16 @@ function isSupabaseEmailRateLimitError(error) {
   return error.status === 429
     || message.includes("rate limit")
     || message.includes("email rate limit exceeded");
+}
+
+function lockAuthSubmitButton(durationMs) {
+  authSubmitButton.disabled = true;
+  authSubmitButton.textContent = "Wysyłanie...";
+
+  setTimeout(function() {
+    authSubmitButton.disabled = false;
+    authSubmitButton.textContent = "Wyślij link logowania";
+  }, durationMs);
 }
 
 async function signOut() {
@@ -2471,12 +2485,19 @@ authForm.addEventListener("submit", async function(event) {
   }
 
   authSubmitButton.disabled = true;
+  authSubmitButton.textContent = "Wysyłanie...";
   authStatus.textContent = "Wysyłanie linku...";
 
   const result = await signInWithEmail(email);
 
-  authSubmitButton.disabled = false;
   authStatus.textContent = result.message;
+
+  if (result.ok || result.rateLimited) {
+    lockAuthSubmitButton(60000);
+    return;
+  }
+
+  lockAuthSubmitButton(4000);
 });
 
 startEmptyButton.addEventListener("click", function() {
