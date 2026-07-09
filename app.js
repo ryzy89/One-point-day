@@ -246,7 +246,10 @@ async function getCurrentSession() {
 
 async function signInWithEmail(email) {
   if (!supabaseClient) {
-    return false;
+    return {
+      ok: false,
+      message: "Nie udało się wysłać linku. Sprawdź email i spróbuj ponownie."
+    };
   }
 
   const { error } = await supabaseClient.auth.signInWithOtp({
@@ -257,11 +260,33 @@ async function signInWithEmail(email) {
   });
 
   if (error) {
+    if (isSupabaseEmailRateLimitError(error)) {
+      console.warn("Supabase email rate limit exceeded");
+      return {
+        ok: false,
+        message: "Za dużo prób wysłania linku. Odczekaj kilka minut i spróbuj ponownie."
+      };
+    }
+
     console.warn("Supabase magic link failed:", error);
-    return false;
+    return {
+      ok: false,
+      message: "Nie udało się wysłać linku. Sprawdź email i spróbuj ponownie."
+    };
   }
 
-  return true;
+  return {
+    ok: true,
+    message: "Sprawdź pocztę i kliknij link logowania."
+  };
+}
+
+function isSupabaseEmailRateLimitError(error) {
+  const message = String(error.message || "").toLowerCase();
+
+  return error.status === 429
+    || message.includes("rate limit")
+    || message.includes("email rate limit exceeded");
 }
 
 async function signOut() {
@@ -2448,12 +2473,10 @@ authForm.addEventListener("submit", async function(event) {
   authSubmitButton.disabled = true;
   authStatus.textContent = "Wysyłanie linku...";
 
-  const sent = await signInWithEmail(email);
+  const result = await signInWithEmail(email);
 
   authSubmitButton.disabled = false;
-  authStatus.textContent = sent
-    ? "Sprawdź pocztę i kliknij link logowania."
-    : "Nie udało się wysłać linku. Sprawdź email i spróbuj ponownie.";
+  authStatus.textContent = result.message;
 });
 
 startEmptyButton.addEventListener("click", function() {
