@@ -67,6 +67,10 @@
         </div>
 
         <div id="authPanel" class="auth-panel">
+          <div id="authLocalStatus" class="auth-local-status">
+            <span class="mode-badge mode-local">Lokalnie</span>
+            <span>Tryb lokalny</span>
+          </div>
           <button id="authButton" class="auth-button secondary" type="button">Zaloguj</button>
           <div id="authUser" class="auth-user hidden">
             <span id="authEmail"></span>
@@ -168,6 +172,7 @@
       <section class="backup-data">
         <h2>Backup danych</h2>
         <p>Przenieś dane między lokalną wersją aplikacji i wersją online.</p>
+        <p class="backup-note">Backup działa lokalnie. Synchronizacja z chmurą wymaga logowania.</p>
         <div class="backup-actions">
           <button id="exportDataButton" type="button">Eksportuj dane</button>
           <button id="importDataButton" class="secondary" type="button">Importuj dane</button>

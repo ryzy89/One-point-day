@@ -57,6 +57,7 @@ const uploadCloudButton = document.getElementById("uploadCloudButton");
 const downloadCloudButton = document.getElementById("downloadCloudButton");
 const supabaseModeIndicator = document.getElementById("supabaseModeIndicator");
 const authPanel = document.getElementById("authPanel");
+const authLocalStatus = document.getElementById("authLocalStatus");
 const authButton = document.getElementById("authButton");
 const authUser = document.getElementById("authUser");
 const authEmail = document.getElementById("authEmail");
@@ -175,11 +176,17 @@ function renderAuthUI() {
   authPanel.className = "auth-panel";
 
   if (email) {
+    if (authLocalStatus) {
+      authLocalStatus.className = "auth-local-status hidden";
+    }
     authButton.className = "auth-button secondary hidden";
     authUser.className = "auth-user";
     authEmail.textContent = formatAuthEmail(email);
     authEmail.title = email;
   } else {
+    if (authLocalStatus) {
+      authLocalStatus.className = "auth-local-status";
+    }
     authButton.className = "auth-button secondary";
     authUser.className = "auth-user hidden";
     authEmail.textContent = "";
@@ -187,6 +194,24 @@ function renderAuthUI() {
   }
 
   renderSyncUI();
+}
+
+function setDefaultSyncStatus(message) {
+  if (!syncStatus) {
+    return;
+  }
+
+  const defaultMessages = [
+    "Synchronizacja dostępna po połączeniu z Supabase.",
+    "Gotowe do ręcznej synchronizacji.",
+    "Zaloguj się, aby wysyłać i pobierać dane.",
+    "Dane są zapisane tylko w tej przeglądarce.",
+    "Po zalogowaniu możesz wysłać dane do chmury lub pobrać je na to urządzenie."
+  ];
+
+  if (syncStatus.textContent === "" || defaultMessages.includes(syncStatus.textContent)) {
+    syncStatus.textContent = message;
+  }
 }
 
 function renderSyncUI() {
@@ -198,9 +223,7 @@ function renderSyncUI() {
 
   if (!supabaseClient) {
     syncAccountInfo.textContent = "Tryb lokalny";
-    if (syncStatus && syncStatus.textContent === "") {
-      syncStatus.textContent = "Synchronizacja dostępna po połączeniu z Supabase.";
-    }
+    setDefaultSyncStatus("Dane są zapisane tylko w tej przeglądarce.");
     syncActions.className = "sync-actions hidden";
     return;
   }
@@ -209,19 +232,15 @@ function renderSyncUI() {
   syncActions.className = "sync-actions";
 
   if (email) {
-    syncAccountInfo.textContent = `Zalogowano jako: ${email} · Supabase połączony`;
-    if (syncStatus && syncStatus.textContent === "") {
-      syncStatus.textContent = "Gotowe do ręcznej synchronizacji.";
-    }
+    syncAccountInfo.textContent = `Status: Chmura aktywna · Zalogowano jako: ${email} · Supabase połączony`;
+    setDefaultSyncStatus("Po zalogowaniu możesz wysłać dane do chmury lub pobrać je na to urządzenie.");
     uploadCloudButton.disabled = false;
     downloadCloudButton.disabled = false;
   } else {
-    syncAccountInfo.textContent = "Supabase połączony · zaloguj się, aby użyć synchronizacji";
-    if (syncStatus && syncStatus.textContent === "") {
-      syncStatus.textContent = "Zaloguj się, aby wysyłać i pobierać dane.";
-    }
-    uploadCloudButton.disabled = false;
-    downloadCloudButton.disabled = false;
+    syncAccountInfo.textContent = "Status: Tryb lokalny — dane są zapisane tylko w tej przeglądarce.";
+    setDefaultSyncStatus("Zaloguj się, aby użyć synchronizacji.");
+    uploadCloudButton.disabled = true;
+    downloadCloudButton.disabled = true;
   }
 }
 
@@ -332,6 +351,9 @@ async function signOut() {
   }
 
   authSession = null;
+  if (syncStatus) {
+    syncStatus.textContent = "";
+  }
   renderAuthUI();
 }
 
