@@ -46,6 +46,11 @@ const exportDataButton = document.getElementById("exportDataButton");
 const importDataButton = document.getElementById("importDataButton");
 const importDataInput = document.getElementById("importDataInput");
 const clearLocalDataButton = document.getElementById("clearLocalDataButton");
+const syncAccountInfo = document.getElementById("syncAccountInfo");
+const syncStatus = document.getElementById("syncStatus");
+const syncActions = document.getElementById("syncActions");
+const uploadCloudButton = document.getElementById("uploadCloudButton");
+const downloadCloudButton = document.getElementById("downloadCloudButton");
 const supabaseModeIndicator = document.getElementById("supabaseModeIndicator");
 const authPanel = document.getElementById("authPanel");
 const authButton = document.getElementById("authButton");
@@ -174,6 +179,33 @@ function renderAuthUI() {
     authUser.className = "auth-user hidden";
     authEmail.textContent = "";
     authEmail.removeAttribute("title");
+  }
+
+  renderSyncUI();
+}
+
+function renderSyncUI() {
+  if (!syncAccountInfo || !syncActions) {
+    return;
+  }
+
+  if (!supabaseClient) {
+    syncAccountInfo.textContent = "Tryb lokalny";
+    syncActions.className = "sync-actions hidden";
+    return;
+  }
+
+  const email = getSessionEmail(authSession);
+  syncActions.className = "sync-actions";
+
+  if (email) {
+    syncAccountInfo.textContent = `Zalogowano jako: ${email} · Supabase połączony`;
+    uploadCloudButton.disabled = false;
+    downloadCloudButton.disabled = false;
+  } else {
+    syncAccountInfo.textContent = "Supabase połączony · zaloguj się, aby użyć synchronizacji";
+    uploadCloudButton.disabled = false;
+    downloadCloudButton.disabled = false;
   }
 }
 
@@ -1277,6 +1309,140 @@ function showNewAchievementToasts(previousUnlockedIds, achievementsAfter) {
   }
 }
 
+function showSyncMessage(message) {
+  if (syncStatus) {
+    syncStatus.textContent = message;
+  }
+
+  const toast = document.createElement("div");
+  const icon = document.createElement("div");
+  const text = document.createElement("div");
+  const title = document.createElement("div");
+  const name = document.createElement("div");
+
+  toast.className = "achievement-toast";
+  icon.className = "achievement-toast-icon";
+  text.className = "achievement-toast-text";
+  title.className = "achievement-toast-title";
+  name.className = "achievement-toast-name";
+
+  icon.textContent = "↕";
+  title.textContent = "Synchronizacja";
+  name.textContent = message;
+
+  text.appendChild(title);
+  text.appendChild(name);
+  toast.appendChild(icon);
+  toast.appendChild(text);
+  toastContainer.appendChild(toast);
+
+  requestAnimationFrame(function() {
+    toast.classList.add("show");
+  });
+
+  setTimeout(function() {
+    toast.classList.remove("show");
+  }, 3200);
+
+  setTimeout(function() {
+    toast.remove();
+  }, 3600);
+}
+
+async function getAuthenticatedSupabaseUser() {
+  const session = authSession || await getCurrentSession();
+
+  if (!supabaseClient || !session || !session.user) {
+    return null;
+  }
+
+  return session.user;
+}
+
+async function uploadLocalDataToSupabase() {
+  const user = await getAuthenticatedSupabaseUser();
+
+  if (!user) {
+    showSyncMessage("Zaloguj się, aby użyć synchronizacji");
+    return false;
+  }
+
+  const goals = loadGoals();
+  const rows = Object.keys(goals).map(function(dateKey) {
+    return {
+      user_id: user.id,
+      date: dateKey,
+      data: goals[dateKey],
+      updated_at: new Date().toISOString()
+    };
+  });
+
+  if (rows.length === 0) {
+    showSyncMessage("Nie znaleziono lokalnych danych do wysłania");
+    return false;
+  }
+
+  const { error } = await supabaseClient
+    .from("daily_goals")
+    .upsert(rows, { onConflict: "user_id,date" });
+
+  if (error) {
+    console.warn("Supabase sync upload failed:", error);
+    showSyncMessage("Wystąpił błąd synchronizacji");
+    return false;
+  }
+
+  showSyncMessage("Dane wysłane do chmury");
+  return true;
+}
+
+async function downloadDataFromSupabase() {
+  const user = await getAuthenticatedSupabaseUser();
+
+  if (!user) {
+    showSyncMessage("Zaloguj się, aby użyć synchronizacji");
+    return false;
+  }
+
+  const shouldDownload = confirm("Pobranie danych z chmury zastąpi lokalne dane w tej przeglądarce. Kontynuować?");
+
+  if (!shouldDownload) {
+    return false;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("daily_goals")
+    .select("date,data,updated_at")
+    .eq("user_id", user.id)
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.warn("Supabase sync download failed:", error);
+    showSyncMessage("Wystąpił błąd synchronizacji");
+    return false;
+  }
+
+  if (!data || data.length === 0) {
+    showSyncMessage("Nie znaleziono danych w chmurze");
+    return false;
+  }
+
+  const downloadedGoals = {};
+
+  data.forEach(function(row) {
+    if (row.date && row.data) {
+      downloadedGoals[row.date] = row.data;
+    }
+  });
+
+  getActiveUser().dailyGoals = normalizeDailyGoals(downloadedGoals);
+  saveAppData();
+  selectedDate = today;
+  renderApp();
+  showSyncMessage("Dane pobrane z chmury");
+  return true;
+}
+
 function getActivityClass(goal) {
   if (isGoalDone(goal)) {
     return "contribution-done";
@@ -2376,6 +2542,24 @@ clearLocalDataButton.addEventListener("click", function() {
   applyTheme("dark");
   localStorage.removeItem(THEME_KEY);
   showStartScreen();
+});
+
+uploadCloudButton.addEventListener("click", async function() {
+  uploadCloudButton.disabled = true;
+  downloadCloudButton.disabled = true;
+
+  await uploadLocalDataToSupabase();
+
+  renderSyncUI();
+});
+
+downloadCloudButton.addEventListener("click", async function() {
+  uploadCloudButton.disabled = true;
+  downloadCloudButton.disabled = true;
+
+  await downloadDataFromSupabase();
+
+  renderSyncUI();
 });
 
 userButton.addEventListener("click", function() {

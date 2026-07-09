@@ -175,6 +175,17 @@
           <input id="importDataInput" type="file" accept=".json,application/json" hidden>
         </div>
       </section>
+
+      <section class="sync-data">
+        <h2>Synchronizacja</h2>
+        <p id="syncAccountInfo">Tryb lokalny</p>
+        <p id="syncStatus" class="sync-status"></p>
+        <div id="syncActions" class="sync-actions hidden">
+          <button id="uploadCloudButton" type="button">Wyślij dane do chmury</button>
+          <button id="downloadCloudButton" class="secondary" type="button">Pobierz dane z chmury</button>
+        </div>
+        <p class="sync-note">W Supabase wymagane jest unikalne ograniczenie: <code>unique(user_id, date)</code>.</p>
+      </section>
     </section>
 
     <section id="historyTabPanel" class="tab-panel history-panel">

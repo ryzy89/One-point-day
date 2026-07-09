@@ -60,6 +60,17 @@ Aktualna wersja: `v0.1.1`
 - Rozbudowany panel postępów.
 - Dalsze poprawki UI/UX.
 
+## Supabase
+
+Ręczna synchronizacja danych korzysta z tabeli `daily_goals`. Do poprawnego działania `upsert` tabela powinna mieć unikalne ograniczenie dla pary `user_id` i `date`.
+
+Przykładowy SQL:
+
+```sql
+alter table public.daily_goals
+add constraint daily_goals_user_id_date_key unique (user_id, date);
+```
+
 ## Publikacja
 
 Projekt jest statyczną aplikacją webową. Można go publikować na Netlify, GitHub Pages albo innym hostingu statycznym.

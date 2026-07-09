@@ -359,6 +359,7 @@ input {
 .charts-dashboard,
 .achievements-section,
 .backup-data,
+.sync-data,
 .side-missions {
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
@@ -482,6 +483,7 @@ input {
 .charts-dashboard:hover,
 .achievements-section:hover,
 .backup-data:hover,
+.sync-data:hover,
 .side-missions:hover,
 .pie-chart-card:hover {
   transform: translateY(-1px);
@@ -1256,23 +1258,45 @@ h3 {
   padding: 22px;
 }
 
-.backup-data h2 {
+.sync-data {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+}
+
+.backup-data h2,
+.sync-data h2 {
   margin: 0;
   color: var(--text);
   font-size: 18px;
   font-weight: 600;
 }
 
-.backup-data p {
+.backup-data p,
+.sync-data p {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
 }
 
-.backup-actions {
+.backup-actions,
+.sync-actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.sync-status {
+  min-height: 20px;
+}
+
+.sync-note {
+  color: var(--muted-2) !important;
+  font-size: 12px !important;
+}
+
+.sync-note code {
+  color: var(--text);
 }
 
 .bar-chart {
@@ -2307,6 +2331,7 @@ details[open] > .history-group-header::before {
   .charts-dashboard,
   .achievements-section,
   .backup-data,
+  .sync-data,
   .stats-panel {
     padding: 16px;
   }
@@ -2398,6 +2423,7 @@ details[open] > .history-group-header::before {
   .input-row,
   .actions,
   .backup-actions,
+  .sync-actions,
   .start-actions {
     flex-direction: column;
   }
@@ -2406,6 +2432,7 @@ details[open] > .history-group-header::before {
   .input-row button,
   .actions button,
   .backup-actions button,
+  .sync-actions button,
   .start-actions button {
     width: 100%;
   }
