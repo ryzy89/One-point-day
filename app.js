@@ -49,6 +49,10 @@ const clearLocalDataButton = document.getElementById("clearLocalDataButton");
 const syncAccountInfo = document.getElementById("syncAccountInfo");
 const syncStatus = document.getElementById("syncStatus");
 const syncActions = document.getElementById("syncActions");
+const syncLastUpload = document.getElementById("syncLastUpload");
+const syncLastUploadCount = document.getElementById("syncLastUploadCount");
+const syncLastDownload = document.getElementById("syncLastDownload");
+const syncLastDownloadCount = document.getElementById("syncLastDownloadCount");
 const uploadCloudButton = document.getElementById("uploadCloudButton");
 const downloadCloudButton = document.getElementById("downloadCloudButton");
 const supabaseModeIndicator = document.getElementById("supabaseModeIndicator");
@@ -75,6 +79,7 @@ const THEME_KEY = "appTheme";
 const WELCOME_KEY = "welcomeSeen";
 const SHOWN_ACHIEVEMENTS_KEY = "shownAchievements";
 const ONBOARDING_KEY = "onboardingSeen";
+const SYNC_META_KEY = "onePointSyncMeta";
 const today = getTodayDateKey();
 const hasInitialAppData = localStorage.getItem(APP_DATA_KEY) !== null;
 const hasSeenWelcome = localStorage.getItem(WELCOME_KEY) === "true";
@@ -189,8 +194,13 @@ function renderSyncUI() {
     return;
   }
 
+  renderSyncMeta();
+
   if (!supabaseClient) {
     syncAccountInfo.textContent = "Tryb lokalny";
+    if (syncStatus && syncStatus.textContent === "") {
+      syncStatus.textContent = "Synchronizacja dostępna po połączeniu z Supabase.";
+    }
     syncActions.className = "sync-actions hidden";
     return;
   }
@@ -200,10 +210,16 @@ function renderSyncUI() {
 
   if (email) {
     syncAccountInfo.textContent = `Zalogowano jako: ${email} · Supabase połączony`;
+    if (syncStatus && syncStatus.textContent === "") {
+      syncStatus.textContent = "Gotowe do ręcznej synchronizacji.";
+    }
     uploadCloudButton.disabled = false;
     downloadCloudButton.disabled = false;
   } else {
     syncAccountInfo.textContent = "Supabase połączony · zaloguj się, aby użyć synchronizacji";
+    if (syncStatus && syncStatus.textContent === "") {
+      syncStatus.textContent = "Zaloguj się, aby wysyłać i pobierać dane.";
+    }
     uploadCloudButton.disabled = false;
     downloadCloudButton.disabled = false;
   }
@@ -617,6 +633,44 @@ function readStorageObject(key, fallbackValue) {
     console.warn(`Nie udało się odczytać danych z localStorage: ${key}`);
     return fallbackValue;
   }
+}
+
+function loadSyncMeta() {
+  return readStorageObject(SYNC_META_KEY, {});
+}
+
+function saveSyncMeta(syncMeta) {
+  localStorage.setItem(SYNC_META_KEY, JSON.stringify(syncMeta));
+}
+
+function formatSyncDate(dateValue) {
+  if (!dateValue) {
+    return "brak";
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "brak";
+  }
+
+  return new Intl.DateTimeFormat("pl-PL", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function renderSyncMeta() {
+  if (!syncLastUpload || !syncLastUploadCount || !syncLastDownload || !syncLastDownloadCount) {
+    return;
+  }
+
+  const syncMeta = loadSyncMeta();
+
+  syncLastUpload.textContent = `Ostatnia wysyłka: ${formatSyncDate(syncMeta.lastUploadAt)}`;
+  syncLastUploadCount.textContent = `Wysłane dni: ${syncMeta.lastUploadCount === undefined || syncMeta.lastUploadCount === null ? "—" : formatNumber(syncMeta.lastUploadCount)}`;
+  syncLastDownload.textContent = `Ostatnie pobranie: ${formatSyncDate(syncMeta.lastDownloadAt)}`;
+  syncLastDownloadCount.textContent = `Pobrane dni: ${syncMeta.lastDownloadCount === undefined || syncMeta.lastDownloadCount === null ? "—" : formatNumber(syncMeta.lastDownloadCount)}`;
 }
 
 function loadOldDailyGoals() {
@@ -1431,6 +1485,11 @@ async function uploadLocalDataToSupabase() {
     return false;
   }
 
+  const syncMeta = loadSyncMeta();
+  syncMeta.lastUploadAt = new Date().toISOString();
+  syncMeta.lastUploadCount = rows.length;
+  saveSyncMeta(syncMeta);
+  renderSyncMeta();
   showSyncMessage("Dane wysłane do chmury");
   return true;
 }
@@ -1478,6 +1537,11 @@ async function downloadDataFromSupabase() {
   saveAppData();
   selectedDate = today;
   renderApp();
+  const syncMeta = loadSyncMeta();
+  syncMeta.lastDownloadAt = new Date().toISOString();
+  syncMeta.lastDownloadCount = Object.keys(downloadedGoals).length;
+  saveSyncMeta(syncMeta);
+  renderSyncMeta();
   showSyncMessage("Dane pobrane z chmury");
   return true;
 }
@@ -2580,6 +2644,7 @@ clearLocalDataButton.addEventListener("click", function() {
   localStorage.removeItem(WELCOME_KEY);
   localStorage.removeItem(ONBOARDING_KEY);
   localStorage.removeItem(SHOWN_ACHIEVEMENTS_KEY);
+  localStorage.removeItem(SYNC_META_KEY);
   appData = createDefaultAppData();
   selectedDate = today;
   historyView = "date";
